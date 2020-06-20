@@ -1,0 +1,30 @@
+Name - Shubh Gohil
+Mis No - 111803052
+Task Name - Image Classifier on MNIST Dataset
+Accuracy - 99.04 for 15 epochs
+
+1. Downloading From Mnist Dataset:
+	I have used keras library running on top of tensorflow for the neural network implementation. First the mnist dataset is loaded from the keras datasets library. This data is distributed among the diferent variables as train and test sets. Every image in the each set is combination of 28x28 pixels of image. Their are 60000 images in the train dataset and 10000 in test dataset along with their respective lables in each set. The images in both the datasets are ranged from 0 to 255 which represent their respective RGB colours. The labels in both datasets are from 0 to 9 which represent the original number.
+	
+2. Reshaping and Normalizing:
+	Both train and test image datasets are reshaped into a 4-dim array of (60000,28,28,1) for execution on the set using keras api.This dimension represent 60000 images of 28x28 pixels along a single row. All the values of the pixels are then converted to the float type to make all the values of the same datatype in case their is mismatch that would hamper the models accuracy. Normalizing process is then carried on the pixels of images which helps on eliminating various anomalies and helps in scaling the data within a certain range. Here the normalization used is min-max normalization which sets the input data between [0,1]. The formula is 
+			X[:,i] = X[:,i] - min(X[:,i]) / (max(X[:,i]) - min(X[:,i]))
+			
+3. Building Convolutional Neural Network:
+	Sequential model along with Convolutional layer, Maxpooling layer, Dense layer, Dropout and Flatten complete the neural network. First the 2D convolution layer is applied with a total 32 kernals of size 3x3. The output obtained from this layer is a of size (n-f+1)x(n-f+1), where 
+	n - no of pixels
+	f - kernal size(size of filter)
+Then a 2D Maxpooling layer is added of size 2x2 to reduce the size of image. Another convolutional layer is added but now with 64 kernals of size 3x3 followed by a 2D Maxpooling layer. The convolutional layers are used to detect the shape of simple objects or edges in the image or to extract other features of the image. Then the output layer is flattened in to a 1D array for further process. This single layered vectors are then passed to the dense layer and weight of each input is calculated and passed to further layers. This weight is calculated using a function called activation function. The function used here is relu(Rectified Linear Unit) .This function works as
+	f(x) = 0  ,x<0
+	       x  ,x>0
+A dropout function is used to skip some neural networks in order to reduce overfitting of data. Again a dense layer is used with 10 neurons using softmax activation function. Softmax activation function reduces the result between [0,1].This output is used to predict the number.
+
+4. Compiling and Fitting the model:
+	While compiling we have to define optimizer, loss and metrics. The optimizer here used is 'adam', they are used to reduce the loss function by updating the weight parameters. Loss function calculates the loss in data or inaccuracy in data prediction. The loss function used is 'sparse_categorical_crossentropy'. Metrics defines the form of output required. Accuracy of model is used in this case.
+	The input is then fitted in the model and passed number of times the epochs are defined. After each epoch the data is shuffled to make the model more efficient.
+	
+5. Evaluating the model:
+	Evaluation is done and model accuracy is obtained along with the loss function.
+
+
+
