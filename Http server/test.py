@@ -10,16 +10,76 @@ socket.listen(50) #No. of connectinos allowed to queue
 
 #GET
 def get_method(clientsocket, method, path, header_list):
-	response
-	abs_path = os.getcwd()+path
-	if os.path.exists(abs_path):
-		if os.path.isfile(abs_path): #check for read write permission of a file or dir
-			
+	response_headers=[] #stores response headers
+	response=''  #stores the message to be sent from server
+	header_dict={} #stores the request headers with its content
+	display_headers='' #stores the complete response to be sent
+	statuscode=0 #stores the status code
+	for header in header_list: #extracts each headers and its value
+		temp=header.split(':')
+		header_dict[temp[0]] = temp[1]
+	abs_path = os.getcwd()+path #stores the complete path of requested file or directory
+	if os.path.exists(abs_path): #check if path is valid
+		if os.path.isfile(abs_path): #checks if file or not
+			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK): #check for read write permission of a file or dir
+				#filename = abs_path.split('/')[-1]
+				try:
+					fd = open(abs_path, 'r') 
+					file_content = fd.read() #read contents of file
+					file_length = os.path.getsize(abs_path) #get the size of file
+					response+="<html>"
+					response+="<head><link rel=\"stylesheet\" href=\"resource://content-accessible/plaintext.css\"></head>"
+					response+="<body>"+file_content+"</body>"
+					response+='</html>'
+				except:
+					pass #500 Internal Server ERROR
+				
+				for header in header_dict:
+					if header=="Host":
+						pass
+					'''elif header=="Accept": #if does not satisfy this condition 406 Not Acceptable should be sent in response
+						accept_type = header_dict[header].split(",")
+						
+						response_headers.append("Content-Type: ")
+						pass'''
+					elif header=='User-Agent':
+						response_headers.append("Server: ABcd/0.1 Ubuntu")
+						pass
+					elif header=='Accept-Language':
+						response_headers.append("Content-Language: en-US")
+						pass
+					elif header=='Accept-Encoding':
+						pass
+					elif header=='Referer':
+						pass
+					elif header=='Connection':
+						pass
+					elif header=='Cookie':
+						pass
+					elif header=='Accept-Charset':
+						pass
+					elif header=='Authorization':
+						pass
+					elif header=='From': #for email
+						pass
+					elif header=='If-Match':
+						pass
+					elif header=='If-Modified-Since': #if the file is modified after the given date then only send the response message with 200 response else 304
+						pass
+					elif header=='If-None-Match':
+						pass
+					elif header=='If-Range':
+						pass
+					elif header=='If-Unmodified-Since':
+						pass
+
+
+			#else: 403 Forbidden
 		#elif os.path.isdir(abs_path):
 		
-		#else:
+		#else: 415 Unsupported Media Type
 	else:
-		# 400 Bad request
+		# 404 Not Found
 			
 
 #first function called to accept the headers from client and checks the method requested
