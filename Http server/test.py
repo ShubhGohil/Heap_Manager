@@ -3,13 +3,42 @@ import sys
 import threading
 import os
 import time
+from collections import deque
 
 month = { 'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12 }
 
-serverport = 1233 #server port number
+serverport = 1234 #server port number
 socket = socket(AF_INET, SOCK_STREAM) #create a socket
 socket.bind(("", serverport)) #bind the server with ip and port
 socket.listen(50) #No. of connectinos allowed to queue
+
+#returns the proper status code
+def status_code(code):
+	if code==200:
+		return "HTTP/1.1 200 OK"
+	if code==201:
+		return "HTTP/1.1 201 Created"
+	if code==202:
+		return "HTTP/1.1 202 Accepted"
+	if code==204:
+		return "HTTP/1.1 204 No Content"	
+	if code==304:
+		return "HTTP/1.1 304 Not Modified"
+	if code==400:
+		return "HTTP/1.1 400 Bad Request"
+	if code==405:	
+		return "HTTP/1.1 405 Method Not Allowed"
+	if code==404:
+		return "HTTP/1.1 404 Not Found"
+	if code==403:
+		return "HTTP/1.1 403 Forbidden"
+	if code==415:
+		return "HTTP/1.1 415 Unsupported Media Type"
+	if code==505:
+		return "HTTP/1.1 505 HTTP Version Not Supported" 
+	else:
+		return "HTTP/1.1 500 Internal Server Error"
+
 
 #get the last modified time of the file given, else return current time 
 def getdatetime(path=None):
@@ -66,11 +95,11 @@ def compare_time_if_modified(path, given_time):
 
 #GET
 def get_method(clientsocket, method, path, header_list):
-	response_headers=[] #stores response headers
+	response_headlist=deque() #stores response headers
 	response_message=''  #stores the message to be sent from server
 	header_dict={} #stores the request headers with its content
 	display_headers='' #stores the complete response to be sent
-	statuscode=0 #stores the status code
+	statuscode=200 #stores the status code (let default be 200)
 	
 	for header in header_list: #extracts each headers and its value
 		temp=header.split(':')
@@ -82,20 +111,24 @@ def get_method(clientsocket, method, path, header_list):
 			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK): #check for read write permission of a file or dir
 				#filename = abs_path.split('/')[-1]
 				try:
-					fd = open(abs_path, 'r') 
+					fd = open(abs_path, 'r')
 					file_content = fd.read() #read contents of file
-					file_length = os.path.getsize(abs_path) #get the size of file
+					fd.close()
 					response_message+="<html>\n"
 					response_message+="<head><link rel=\"stylesheet\" href=\"resource://content-accessible/plaintext.css\"></head>\n"
 					response_message+="<body>"+file_content+"</body>\n"
 					response_message+='</html>\n\n'
+					file_length = sys.getsizeof(response_message) #get the size of response (need to modify should contain length of headers+message)
+
 				except:
-					pass #500 Internal Server ERROR
+					statuscode = status_code(500)
+					#pass #500 Internal Server ERROR
 				
 				for header in header_dict:
 					if header=="Host":
-						response_headers.append(getdatetime(abs_path))
-						response_headers.append("Server: ABcd/0.1 Ubuntu")
+						response_headlist.append(getdatetime(abs_path))
+						response_headlist.append("Server: ABcd/0.1 Ubuntu")
+						response_headlist.append("Content-Length: " + str(file_length))
 					#'''elif header=="Accept": 
 					#if does not satisfy this condition 406 Not Acceptable should be sent in response
 					#	accept_type = header_dict[header].split(",")
@@ -106,7 +139,7 @@ def get_method(clientsocket, method, path, header_list):
 						pass
 						
 					elif header=='Accept-Language':
-						response_headers.append("Content-Language: en-US")
+						response_headlist.append("Content-Language: en-US")
 						
 					elif header=='Accept-Encoding':
 						pass
@@ -136,23 +169,37 @@ def get_method(clientsocket, method, path, header_list):
 						pass
 					else:
 						continue
-					
-				complete_response=''
-				for r in response_headers:
-					complete_response+=r+"\n"
-				complete_response+="\n"
 				
-				response=complete_response+response_message
+				response_headlist.appendleft(status_code(statuscode))
+					
+				response_headers=''
+				for r in response_headlist:
+					response_headers+=r+"\n"
+				response_headers+="\n"
+				
+				response = response_headers + response_message
 				#print(response)
 				clientsocket.send(response.encode())
-					
-			#else: 403 Forbidden
-		#elif os.path.isdir(abs_path):
+				clientsocket.close()
+			else: 
+				statuscode=status_code(403)
+				
+		elif os.path.isdir(abs_path):
+			dir_list=os.listdir(abs_path)
+			
+			response_message+="<html>\n"
+			response_message+="<head><link rel=\"stylesheet\" href=\"resource://content-accessible/plaintext.css\"></head>\n"
+			response_message+="<body><h1>Directory Listing</h1><ul>\n"
+			for element in dir_list:
+				response_messasge+="<li>"+element+"</li>\n"
+			response_message+="</ul></body>\n"
+			response_message+='</html>\n\n'
 		
-		#else: 415 Unsupported Media Type
+		else: 
+			statuscode=status_code(415)
 	else:
-		# 404 Not Found
-		pass	
+		statuscode=status_code(404)
+		
 
 #first function called to accept the headers from client and checks the method requested
 def client_request(clientsocket, address):
