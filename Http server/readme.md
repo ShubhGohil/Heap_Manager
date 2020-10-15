@@ -4,3 +4,4 @@
 4 - Proceeded with GET
 5 - GET executes for a simple file
 6 - GET started with directory handling
+7 - Some more modifications
