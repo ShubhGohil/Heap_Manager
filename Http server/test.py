@@ -17,6 +17,17 @@ socket = socket(AF_INET, SOCK_STREAM) #create a socket
 socket.bind(("", serverport)) #bind the server with ip and port
 socket.listen(50) #No. of connectinos allowed to queue
 
+def readfile(abs_path, statusnumber):
+	try:
+		fd = open(abs_path, 'rb')
+		entity_body = fd.read() #read contents of file
+		fd.close()
+		#get the size of response 
+		file_length = sys.getsizeof(entity_body)
+	except:
+		statusnumber = 500 
+	return entity_body, file_length, statusnumber 
+
 
 def content_type(path):
 	try:
@@ -166,78 +177,109 @@ def get_method(clientsocket, method, path, header_list):
 		#check for read write permission of a file or dir
 			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK): 
 			
-				try:
+				entity_body, file_length, statusnumber = readfile(abs_path, statusnumber)
+				'''try:
 					fd = open(abs_path, 'r')
 					entity_body = fd.read() #read contents of file
 					fd.close()
-		#get the size of response (need to modify should contain length of headers+message)
+					#get the size of response 
 					file_length = sys.getsizeof(entity_body) 
 					isfile = 1
-					print("Content of a.txt", entity_body)
 				except:
-					statusnumber = 500
-					#pass #500 Internal Server ERROR
+					statusnumber = 500'''
 				
 			else: 
 				statusnumber=403
 				
 		elif os.path.isdir(abs_path):
+			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
 		
-			dir_list=os.listdir(abs_path)
-			isdirectory = 1
+				dir_list=os.listdir(abs_path)
+				if "index.html" in dir_list:
+					if abs_path.endswith('/'):
+						if os.access(abs_path+"index.html", os.R_OK) and os.access(abs_path+"index.html", os.W_OK):
+							entity_body, file_length, statusnumber = readfile(abs_path+"index.html", statusnumber)
+							'''try:
+								fd = open(abs_path, 'r')
+								entity_body = fd.read() #read contents of file
+								fd.close()
+								#get the size of response 
+								file_length = sys.getsizeof(entity_body)
+							except:
+								statusnumber = 500'''
+						else:
+							isdirectory = 1
+							
+					else:
+						if os.access(abs_path+"/index.html", os.R_OK) and os.access(abs_path+"/index.html", os.W_OK):
+							entity_body, file_length, statusnumber = readfile(abs_path+"/index.html", statusnumber)
+							'''try:
+								fd = open(abs_path, 'r')
+								entity_body = fd.read() #read contents of file
+								fd.close()
+								#get the size of response 
+								file_length = sys.getsizeof(entity_body)
+							except:
+								statusnumber = 500 '''
+						else:
+							isdirectory = 1
 
+				else:	
+					isdirectory = 1
+			else:
+				statusnumber=403
+	
 		else: 
 			statusnumber=415
 	else:
 		statusnumber=404
 		
 #create response headers
+	if statusnumber==200:	
+		for header in header_dict:
+			if header.lower()=="host":
+				response_headlist.append("Date: " + getdatetime())
 	
-	for header in header_dict:
-		if header.lower()=="host":
-			response_headlist.append("Date: " + getdatetime())
-
-		#'''elif header=="Accept": 
-		#if does not satisfy this condition 406 Not Acceptable should be sent in response
-		#	accept_type = header_dict[header].split(",")
-						
-		#	response_headers.append("Content-Type: ")
-		#	pass'''
-		elif header.lower()=='user-agent':
-			response_headlist.append("Server: Exite/0.1 Ubuntu")
-			
-		elif header.lower()=='accept-language':
-			response_headlist.append("Content-Language: en")
-						
-		elif header.lower()=='accept-encoding':
-			pass
-			#response_headlist.append("Content-Encoding: "+ header_dict["Accept-Encoding"])
-			
-		elif header.lower()=='cookie':
-			pass
-		elif header.lower()=='accept-charset':
-			pass
-		elif header.lower()=='authorization':
-			pass
-		elif header.lower()=="content-md5":
-			pass
-		elif header.lower()=='if-modified-since': 
-			if statusnumber==200:
+			'''elif header=="Accept": 
+			if does not satisfy this condition 406 Not Acceptable should be sent in response
+				accept_type = header_dict[header].split(",")
+							
+				response_headers.append("Content-Type: ")
+				pass'''
+			elif header.lower()=='user-agent':
+				response_headlist.append("Server: Exite/0.1 Ubuntu")
+				
+			elif header.lower()=='accept-language':
+				response_headlist.append("Content-Language: en")
+							
+			elif header.lower()=='accept-encoding':
+				pass
+				#response_headlist.append("Content-Encoding: "+ header_dict["Accept-Encoding"])
+				
+			elif header.lower()=='cookie':
+				pass
+			elif header.lower()=='accept-charset':
+				pass
+			elif header.lower()=='authorization':
+				pass
+			elif header.lower()=="content-md5":
+				pass
+			elif header.lower()=='if-modified-since': 
 				conditional_get = compare_time_if_modified(abs_path, header_dict[header])
 				if conditional_get:
 					response_headlist.append("Last-Modified: " + getdatetime(abs_path))
 				else:
 					statusnumber = 304
-				
-		elif header.lower()=='if-range':
-			pass
-		#elif header=='If-Unmodified-Since':
-		#	if statuscode==200:
-		#		unconditional_get = compare_time_if_modified(abs_path, header_dict['If-UnModified-Since'])
-		#		if not unconditional_get:
-		else:
-			continue
-	
+					
+			elif header.lower()=='if-range':
+				pass
+			#elif header=='If-Unmodified-Since':
+			#	if statuscode==200:
+			#		unconditional_get = compare_time_if_modified(abs_path, header_dict['If-UnModified-Since'])
+			#		if not unconditional_get:
+			else:
+				continue
+		
 	response_headlist.appendleft(status_code(statusnumber))
 	
 	if statusnumber==200:
@@ -265,20 +307,75 @@ def get_method(clientsocket, method, path, header_list):
 			entity_body+="</ul>\n"
 			entity_body+="<p>Listed are all the files and sub-directories in the requested directory.</p>\n"
 			entity_body+="</body></html>"
+			entity_body=entity_body.encode()
 	else:
 		entity_body = error_message(statusnumber)
+		entity_body=entity_body.encode()
 
 	entity_headers=''
 	for r in response_headlist:
 		entity_headers+=r+"\n"
 	entity_headers+="\n"
+	entity_headers=entity_headers.encode()
 				
 	response = entity_headers + entity_body
-	print(response)
 
-	clientsocket.send(response.encode())
+	clientsocket.send(response)
 	clientsocket.close()
 
+
+def head_method(clientsocket, path, header_list):
+	header_dict={}
+	response_headlist=deque() #stores response headers
+	statusnumber = 200
+	current_dir = os.getcwd()
+	abs_path = current_dir+path #stores the complete path of requested file or directory
+	
+	for header in header_list: #extracts each headers and its value
+		if header[0:17].lower()=="if-modified-since":
+			header_dict[header[:17]] = header[18:]
+		else:
+			temp=header.split(':')
+			header_dict[temp[0]] = temp[1]
+			
+
+#creates message to be sent
+	if os.path.exists(abs_path): #check if path is valid
+		if os.path.isfile(abs_path): #checks if file or not
+		#check for read write permission of a file or dir
+			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK): 
+			
+				entity_body, file_length, statusnumber = readfile(abs_path, statusnumber)
+			else: 
+				statusnumber=403
+				
+		elif os.path.isdir(abs_path):
+			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
+		
+				dir_list=os.listdir(abs_path)
+				if "index.html" in dir_list:
+					if abs_path.endswith('/'):
+						if os.access(abs_path+"index.html", os.R_OK) and os.access(abs_path+"index.html", os.W_OK):
+							entity_body, file_length, statusnumber = readfile(abs_path+"index.html", statusnumber)
+						else:
+							isdirectory = 1
+							
+					else:
+						if os.access(abs_path+"/index.html", os.R_OK) and os.access(abs_path+"/index.html", os.W_OK):
+							entity_body, file_length, statusnumber = readfile(abs_path+"/index.html", statusnumber)
+						else:
+							isdirectory = 1
+
+				else:	
+					isdirectory = 1
+			else:
+				statusnumber=403
+	
+		else: 
+			statusnumber=415
+	else:
+		statusnumber=404
+	
 
 #first function called to accept the headers from client and checks the method requested
 def client_request(clientsocket, address):
@@ -300,14 +397,20 @@ def client_request(clientsocket, address):
 			
 		if version=='HTTP/1.1':
 			header_list.pop(0) #remove the first line since the elements were analysed
-			if path!='':
-				if method == 'GET':
-					get_method(clientsocket, method, path, header_list) #call get method
-				#elif something:
-				else:
-					#raise 405 Method Not Allowed
-					pass
+			#if path!='':
+			if method == 'GET':
+				get_method(clientsocket, path, header_list) #call get method
+			elif method == 'PUT':
+			elif method == 'POST':
+			elif method == 'TRACE':
+			elif method == 'DELETE':
+			elif method == 'HEAD':
+				head_method(clientsocket, path, header_list)
+			#elif something:
 			else:
+				#raise 405 Method Not Allowed
+				pass
+			'''else:
 				date=getdatetime()
 				error_message = error_message(400)
 				content_length = sys.getsizeof(error_message)
@@ -319,35 +422,35 @@ def client_request(clientsocket, address):
 				headeres+="Content-Type: text/html; charset=iso-8859-1\n"
 				response=headers+error_message
 				clientsocket.send(response.encode('utf-8'))
-				clientsocket.close()
+				clientsocket.close()'''
 		
 		else:
 			
 			date=getdatetime()
 			
-			error_message = error_message(505)
-			content_length = sys.getsizeof(error_message)
+			error_response = error_message(505)
+			content_length = sys.getsizeof(error_response)
 				
 			headers=status_code(505)
 			headers+="Server: Exite/0.1 Ubuntu\n"
 			headers+=date
 			headers+="Content-Length: "+str(content_length)+"\n"
 			headeres+="Content-Type: text/html; charset=iso-8859-1\n"
-			response=headers+error_message
+			response=headers+error_response
 			clientsocket.send(response.encode('utf-8'))
 			clientsocket.close()
 	else:
 		
 		date=getdatetime()
-		error_message = error_message(400)
-		content_length = sys.getsizeof(error_message)
+		error_response = error_message(400)
+		content_length = sys.getsizeof(error_response)
 				
 		headers=status_code(400)
 		headers+="Server: Exite/0.1 Ubuntu\n"
 		headers+=date
 		headers+="Content-Length: "+str(content_length)+"\n"
 		headeres+="Content-Type: text/html; charset=iso-8859-1\n"
-		response=headers+error_message
+		response=headers+error_response
 		clientsocket.send(response.encode('utf-8'))
 		clientsocket.close()
 			

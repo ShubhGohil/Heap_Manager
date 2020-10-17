@@ -5,3 +5,4 @@
 5 - GET executes for a simple file
 6 - GET started with directory handling
 7 - Some more modifications
+8 - More modifications and headers are pending in GET, but starte with HEAD
