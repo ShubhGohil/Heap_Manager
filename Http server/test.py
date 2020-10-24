@@ -8,6 +8,7 @@ import datetime
 from urllib.parse import *
 import random
 import string
+import binascii
 
 month = { 'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12 }
 
@@ -15,28 +16,30 @@ file_extension = {'html':'text/html', 'txt':'text/plain', 'png':'image/png', 'gi
 
 file_type = {'text/html': '.html','text/plain': '.txt', 'image/png': '.png', 'image/gif': '.gif', 'image/jpg': '.jpg','image/x-icon':'.ico', 'image/webp': '.jpeg', 'application/x-www-form-urlencoded':'.php', 'image/jpeg': '.jpeg', 'application/pdf': '.pdf', 'audio/mpeg': '.mp3', 'video/mp4': '.mp4'}
 
-def server_status():
+media_type = ["image/png", "image/jpg", "image/x-icon", "image/gif", "audio/mpeg", "image/webp", "application/pdf", "video/mp4"]
+
+'''def server_status():
 	state = input()
 	if state.lower()=='close':
 		serversocket.close()
 		sys.exit()
 	else:
-		pass
+		pass'''
 
-serverport = 1233 #server port number
+serverport = 1234 #server port number
 serversocket = socket(AF_INET, SOCK_STREAM) #create a socket
 serversocket.bind(("127.0.0.1", serverport)) #bind the server with ip and port
 serversocket.listen(50) #No. of connectinos allowed to queue
 
-s = threading.Thread(target=server_status, args=())
-s.start()
+'''s = threading.Thread(target=server_status, args=())
+s.start()'''
 
 def resolve(element):
 	params = parse_qs(element)
 	values = []
 	for key in params.values():
 		values.append(key[0]+"\n")
-	return values
+	return values, params
 
 #reads the file according to given condition
 def readfile(abs_path, statusnumber, size=0, start=0, end=sys.maxsize):
@@ -181,25 +184,23 @@ def compare_time_if_modified(path, given_time):
 
 def complete_error_response(clientsocket, code):
 	date=getdatetime()
-	error_response = error_message(code)
+	error_response = error_entitybody(code)
 	content_length = sys.getsizeof(error_response)
 			
 	headers=status_code(code)
 	headers+="Server: Exite/0.1 Ubuntu\n"
 	headers+=date
 	headers+="Content-Length: "+str(content_length)+"\n"
-	headeres+="Content-Type: text/html; charset=utf-8\n"
+	headers+="Content-Type: text/html; charset=utf-8\n"
 	response=headers+error_response
 	clientsocket.send(response.encode('utf-8'))
 	clientsocket.close()
 		
 
 #GET
-def get_method(clientsocket, method, path, header_list):
+def get_method(clientsocket, address, method, path, header_list):
 	response_headlist=deque() #stores response headers
-	response_message=''  #stores the message to be sent from server
 	header_dict={} #stores the request headers with its content
-	display_headers='' #stores the complete response to be sent
 	statusnumber=200 #stores the status code (let default be 200)
 	isdirectory = 0
 	isfile = 0 
@@ -214,16 +215,22 @@ def get_method(clientsocket, method, path, header_list):
 	else:
 		get = 0
 	
+	client_ip = address[0]
+	request_method_line = header_list.pop(0)
+	date = getdatetime()
+	
 	for header in header_list: #extracts each headers and its value
 		if header[0:17].lower()=="if-modified-since":
 			header_dict[header[:17].lower()] = header[18:]
 		elif header[0:8].lower()=='if-range':
 			header_dict[header[:8].lower()] = header[9:]
+		elif header[:10].lower()=='user-agent':
+			header_dict[header[:10].lower()] = header[11:]
 		else:
 			temp=header.split(':')
 			if temp[0]=="range":
 				size = int(temp[1])
-			header_dict[temp[0].lower()] = temp[1]
+			header_dict[temp[0].lower()] = temp[1]	
 		
 	abs_path = os.getcwd()+path #stores the complete path of requested file or directory
 
@@ -257,6 +264,7 @@ def get_method(clientsocket, method, path, header_list):
 				statusnumber=403
 				
 		elif os.path.isdir(abs_path):
+			print(abs_path)
 			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
 		
 				dir_list=os.listdir(abs_path)
@@ -304,6 +312,7 @@ def get_method(clientsocket, method, path, header_list):
 		#	statusnumber = 406
 		elif header=='user-agent':
 			response_headlist.append("Server: Exite/0.1 Ubuntu")
+			user_agent = header_dict[header]
 				
 		elif header=='accept-language':
 			if header_dict['accept-language']==' en-US' or header_dict['accept-language'].split(',')[0]==' en-US':
@@ -323,8 +332,8 @@ def get_method(clientsocket, method, path, header_list):
 				statusnumber = 304
 					
 		elif header=='if-unmodified-since' and statusnumber==200:
-			unconditional_get = compare_time_if_modified(abs_path, header_dict['If-UnModified-Since'])
-			if not unconditional_get:
+			conditional_get = compare_time_if_modified(abs_path, header_dict[header])
+			if not conditional_get:
 				response_headlist.append("Last-Modified: " + getdatetime(abs_path))
 			else:
 				statusnumber = 304
@@ -367,6 +376,18 @@ def get_method(clientsocket, method, path, header_list):
 			entity_body = error_entitybody(statusnumber)
 			entity_body=entity_body.encode()
 	
+	response_code = str(statusnumber)
+	
+	try:
+		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", " + user_agent + "\n-----------------------------------------" +"\n\n"
+#		if not os.path.exits(os.getcwd()+"access.log")
+		
+		fd = open("access.log", "a")
+		fd.write(log_entry)
+		fd.close()
+	except:
+		pass
+		
 	entity_headers=''
 	for r in response_headlist:
 		entity_headers+=r+"\n"
@@ -383,8 +404,9 @@ def get_method(clientsocket, method, path, header_list):
 	clientsocket.close()
 
 
+
 #POST
-def post_method(clientsocket, header_list, path, data=""):
+def post_method(clientsocket, address, header_list, path, data=""):
 	response_headlist=deque() #stores response headers
 	value=deque()
 	response_message=''  #stores the message to be sent from server
@@ -392,6 +414,11 @@ def post_method(clientsocket, header_list, path, data=""):
 	statusnumber=204 #stores the status code (let default be 200)
 	content_length = 0
 	entity_headers="" #stores the complete response to be sent
+	log_data = ''
+
+	client_ip = address[0]
+	request_method_line = header_list.pop(0)
+	date = getdatetime()
 
 
 	for header in header_list: #extracts each headers and its value
@@ -403,45 +430,56 @@ def post_method(clientsocket, header_list, path, data=""):
 		value_type = header_dict["content-type"].split(';')
 		boundry = value_type[1].split('=')[1]
 		all_data = data.split("--"+boundry)
+
 		for individual in all_data:
-			try:	
-				details = individual.split("\r\n\r\n")
+			try:
+				if "Content-Disposition" in individual:
+					if 'filename' in individual:
+						log_data += individual.split('\r\n\r\n', 1)[0] + '\n\n'
+						log_data += "Location: " + os.getcwd()
+					else:
+						log_data += individual
+					
+				details = individual.split("\r\n\r\n", 1)
+				file_data = details[1]
+				#filename = details[0]
 				if "Content-Type" in details[0]:
 					content_type = details[0].split('\r\n')[-1]
-				value.append(details[1])
+					filetype = content_type.split(':')[-1].replace(" ", "")
+					print(filetype)
+					extract_filename = details[0].split('\r\n')[-2].split(';')[-1]
+					filename = extract_filename.split('=')[-1].replace('\"', "")
+					print(filename)
+					
+				value.append(details[1]) 
+				
+				if file_type in media_type: 
+					try:
+						fd = open(filename, 'wb')
+						fd.write(file_data)
+						fd.close()
+					except:
+						pass
+				else:
+					try:
+						fd = open(filename, 'w')
+						fd.write(file_data)
+						fd.close()
+					except:
+						pass
 					
 			except:
 				pass
-				
+
 	#if simple values are passed
 	elif "application/x-www-form-urlencoded" in header_dict["content-type"]:
-		value = resolve(data)
+		value, log_data = resolve(data)
 		content_type = "text/plain"
-		
-	#dump the information in post_data.txt file
-	try:		
-		if os.path.exists('post_data.txt'):	
-			fd = open("post_data.txt", "a")
-			for info in value:
-				fd.write(info)
-				content_length += len(info)
-			fd.close()	
-		else:
-			fd = open("post_data.txt", "w")
-			for info in value:
-				fd.write(info)
-				content_length += len(info)
-			fd.close()
-	except:
-		statusnumber=500
-		
-	if content_length <= 6:
-		statusnumber = 400
+
 		
 	entity_headers+=status_code(statusnumber)+"\n"
 	entity_headers+="Date: "+getdatetime()+"\n"				
 	entity_headers+=content_type+"\n"		
-	entity_headers+="Content-Length: "+str(content_length)+"\n"
 	entity_headers+="Server: Exite/0.1 Ubuntu\n\n"
 
 	
@@ -450,13 +488,90 @@ def post_method(clientsocket, header_list, path, data=""):
 	else:
 		response = entity_headers
 
-	print(response)
+	response_code = str(statusnumber)
+
+	try:
+		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n" + "The data of the form is:\n" + str(log_data) + "\n------------------------------------------" +"\n\n"
+
+		print(log_entry)
+		fd = open("access.log", "a")
+		fd.write(log_entry)
+		fd.close()
+	
+	except :
+		pass
 			
 	clientsocket.send(response.encode())
 	clientsocket.close()
 
 
+def put_method(clientsocket, address, header_list, path, data=""):
+	response_headlist=deque() #stores response headers
+	header_dict={} #stores the request headers with its content
+	statusnumber=204 #stores the status code (let default be 200)
+	content_length = 0
+	entity_headers="" #stores the complete response to be sent
+	log_data = ''
+	
+	client_ip = address[0]
+	request_method_line = header_list.pop(0)
+	date = getdatetime()
+	log_data = data
 
+	print(data)
+
+	for header in header_list: #extracts each headers and its value
+		temp=header.split(':')
+		header_dict[temp[0].lower()] = temp[1]
+	
+	abs_path = os.getcwd() + path
+		
+	if os.path.exists(abs_path):
+		if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
+		
+			try:
+				fd = open(path[1:], "a")
+				fd.write(data)
+				fd.close()
+				statusnumber = 200
+				
+			except:
+				statusnumber=500
+	else:
+		try:
+			fd = open(path[1:], "w")
+			fd.write(data)
+			fd.close()
+			statusnumber = 201
+			
+		except:
+			statusnumber = 500
+			
+	entity_headers = status_code(statusnumber) + '\r\n'
+	entity_headers += "Date: " + getdatetime() + '\r\n'
+	entity_headers += "Content-Location: " + path + '\r\n\r\n'
+	
+	if statusnumber == 200:
+		entity_body = "<html>\r\n<head><title>Successfull</title></head>\r\n<body><p>The data has been saved.</p>\r\n</body>\r\n</html>"
+		response = entity_headers + entity_body
+
+	elif statusnumber == 500:
+		entity_body = error_message(statusnumber)
+		response = entity_headers + entity_body
+	else:
+		response = entity_headers
+	
+	response_code = str(statusnumber)
+	
+	fd = open("access.log", "a")
+	log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n" + "The data of the form is:\n" + str(log_data) + "\n------------------------------------------" +"\n\n"
+	fd.write(log_entry)
+	fd.close()
+	
+	#print(response)
+	
+	clientsocket.send(response.encode())
+	clientsocket.close()
 
 #DELETE
 def delete_method(clientsocket, path, header_list):
@@ -521,28 +636,28 @@ def delete_method(clientsocket, path, header_list):
 		
 #first function called to accept the headers from client and checks the method requested
 def client_request(clientsocket, address):
+
 	try:
 		message = clientsocket.recv(4096) #accept the headers
-		
-		message = message.decode('utf-8') #decode the input #'utf-8'
-	
-		#print("Message\n", message)
-	
+		message = message.decode()#'utf-8') #decode the input #'utf-8'
 		requests = message.split('\r\n\r\n', 1)
-		#requests = message.split('\r\n\r\n') #get the message string
-		
-		#print(requests)
-		
 		entity_header = requests[0]
 		entity_data = requests[1]
-	
-		header_list = entity_header.split('\r\n')
-		#header_list = entity_header.split('\r\n') #split each header
-		
-		first_line = header_list[0].split() #gets the first line of message
-	
+
 	except:
-		complete_error_response(clientsocket, 500)
+		message = message.decode(errors = 'ignore')
+		requests = message.split('\r\n\r\n', 1)
+		
+		#requests = message.split('\r\n\r\n') #get the message string
+			
+		entity_header = requests[0]
+		#entity_header = entity_header.decode()
+		entity_data = requests[1]
+	
+	header_list = entity_header.split('\r\n')
+	#header_list = entity_header.split('\r\n') #split each header
+		
+	first_line = header_list[0].split() #gets the first line of message
 		
 	
 	if len(first_line)==3:
@@ -552,15 +667,16 @@ def client_request(clientsocket, address):
 		version = first_line[2] #get the version requested
 			
 		if version=='HTTP/1.1':
-			header_list.pop(0) #remove the first line since the elements were analysed
+			#header_list.pop(0) #remove the first line since the elements were analysed
 			#if path!='':
 			if method == 'GET':
-				get_method(clientsocket, method, path, header_list) #call get method
+				get_method(clientsocket, address, method, path, header_list) #call get method
 				
 			elif method == 'POST':
-				post_method(clientsocket, header_list, path, entity_data) #call get method
+				post_method(clientsocket, address, header_list, path, entity_data) #call post method
 						
-			#elif something
+			elif method == 'PUT':
+				put_method(clientsocket, address, header_list, path, entity_data) #call put method
 			else:
 				#raise 405 Method Not Allowed
 				
@@ -591,3 +707,5 @@ while True:
 	t1.start()
 	
 
+#https://github.com/roopi7760/WebServer/blob/master/Server.py
+#https://github.com/sm8799/HTTP-Web-Server/blob/master/webserver.py
