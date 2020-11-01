@@ -1,4 +1,4 @@
-Sophomore Projects
+Projects
 
 Name - Shubh Bharat Gohil
 
