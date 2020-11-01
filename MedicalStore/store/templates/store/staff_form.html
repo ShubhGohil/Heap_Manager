@@ -1,0 +1,36 @@
+{% extends 'store/base.html' %}
+{% block content %}
+    <div class="container">
+      
+      <form action="{% url 'store:staff-register' %}" method="POST" class="col-md-10">
+      <h3>Staff Registration Form</h3>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="firstname">First Name:</label>
+            <input type="text" class="form-control" id="firstnane" placeholder="Enter first name" name="firstname" required>
+        </div>
+        <div class="form-group">
+            <label for="lastname">Last Name:</label>
+            <input type="text" class="form-control" id="lastname" placeholder="Enter last name" name="lastname" required>
+        </div>
+        <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select class="form-group" id="gender" name="gender" required>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Prefer not to say</option>
+            </select>
+        <div class="form-group">
+            <label for="age">Age:</label>
+            <input type="number" class="form-control" id="age" placeholder="Enter age" name="age">
+        </div>
+        <div class="form-group">
+            <label for="salary">Salary:</label>
+            <input type="number" class="form-control" id="salary" placeholder="Monthly Salary Rs." name="salary" required>
+        </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+{% endblock content %}
+  

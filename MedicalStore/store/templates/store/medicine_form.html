@@ -1,0 +1,16 @@
+{% extends 'store/base.html' %}
+{% block content %}
+    <div class="container">
+      
+      <form action="{% url 'store:medicine-register' %}" method="POST" class="col-md-10">
+      <h3>Medicine Entry Form</h3>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="medname">Medicine Name:</label>
+            <input type="text" class="form-control" id="mednane" placeholder="Enter medicine name" name="medname" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+{% endblock content %}
+  
