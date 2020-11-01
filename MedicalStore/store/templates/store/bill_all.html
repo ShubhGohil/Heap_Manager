@@ -3,19 +3,16 @@
 
 <div class= "container my-4 py-4">
 
-    <h2>Medicine Stock Record</h2><hr>
+    <h2>Bill Record</h2><hr>
 
     <table class="table table-striped table-hover">
         <thead class="thead-dark">
         <tr>
             <th scope="col">ID</th>
+            <th scope="col">Cust Name</th>
+            <th scope="col">Med Name</th>
             <th scope="col">Quantity</th>
             <th scope="col">Price</th>
-            <th scope="col">Mfg Date</th>
-            <th scope="col">Exp Date</th>
-            <th scope="col">Order Date</th>
-            <th scope="col">Medicine Name</th>
-            <th scope="col">Supplier Name</th>
         </tr>
         </thead>
         <tbody>
@@ -26,16 +23,13 @@
                 <td> {{record.2}} </td>
                 <td> {{record.3}} </td>
                 <td> {{record.4}} </td>
-                <td> {{record.5}} </td>
-                <td> {{record.6}} </td>
-                <td> {{record.7}} </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     <hr>
     <center>
-        <a style="align:center" href={% url 'store:stock-register' %} role="button" class="btn btn-info btn-lg col-md-2">Add</a>
+        <a style="align:center" href={% url 'store:store-home' %} role="button" class="btn btn-info btn-lg col-md-2">Add</a>
     </center>
     <hr>
 </div>

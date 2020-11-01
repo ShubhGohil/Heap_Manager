@@ -6,7 +6,7 @@
                 <div class="card text-white bg-success mb-3">
                     <div class="card-header">Today's Sales:</div>
                     <div class="card-body">
-                    <h4> Rs. 1000</h4>
+                    <h4> Rs. {{params.3}}</h4>
                     </div>
                     <div class="card-footer bg-success border-success">
                         <a href="#">Link</a>
@@ -15,7 +15,7 @@
                 <div class="card text-white bg-info mb-3">
                     <div class="card-header">Employees:</div>
                     <div class="card-body">
-                    <h4>{{count_of_employee}}</h4>
+                    <h4>{{params.0}}</h4>
                     </div>
                     <div class="card-footer border-info">
                         <a href="#">Link</a>
@@ -24,7 +24,7 @@
                 <div class="card text-white bg-danger mb-3" >
                     <div class="card-header">Soon Expiring:</div>
                     <div class="card-body">
-                    <h4>10</h4>
+                    <h4>{{params.1}}</h4>
                     </div>
                     <div class="card-footer bg-danger border-danger">
                         <a href="#">Link</a>
@@ -54,7 +54,7 @@
                             <select id="selectMedicine" name="medicine" class="form-control" required>
                             {% for med in params.2 %}
                                 <option value={{ med.0 }}>{{ med.0 }}</option>
-                            {% endfor %}    
+                            {% endfor %}  
                             </select>
                             </div>
                         <div class="form-group col-md-4">
@@ -63,13 +63,6 @@
                         <div class="form-group col-md-2">
                             <a role="button" class="btn btn-danger" id="remove_field">Remove</a>
                         </div>
-                    </div>
-                </div>
-
-                <h5>Bill</h5>
-                <div class="form-row">
-                    <div class="form-group col-md-4">
-                        <input type="number" class="form-control" id="bill" name="bill" placeholder="Total Price Rs.">
                     </div>
                 </div>
 

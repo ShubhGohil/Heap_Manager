@@ -75,7 +75,7 @@
                             <a href="{% url 'store:medicine-register' %}">Add</a>
                         </li>
                         <li>
-                            <a href="#">View All</a>
+                            <a href={% url 'store:medicine-all' %}>View All</a>
                         </li>
                     </ul>
                 </li>                
@@ -89,22 +89,25 @@
                             <a href={% url 'store:supplier-register' %}>Add</a>
                         </li>
                         <li>
-                            <a href="#">View All</a>
+                            <a href={% url 'store:supplier-all' %}>View All</a>
                         </li>
                     </ul>
-                </li>                
+                </li> 
                 <li>
-                    <a href="#">
+                    <a href={% url 'store:bill-all' %}>
+                        <i class="fas fa-copy"></i>
+                       Bill
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'store:info' %}">
                         <i class="fas fa-image"></i>
-                        Portfolio
+                        Developers
                     </a>
                 </li>
+               
                 <li>
-                    <a href="#">
-                        <i class="fas fa-question"></i>
-                        FAQ
-                    </a>
-                </li>
                 <li>
                     <a href="#">
                         <i class="fas fa-paper-plane"></i>
@@ -143,8 +146,18 @@
                     </div>
                 </div>
             </nav>
-
-            <div class= "container jumbotron">
+            <div class="container">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <strong>Message: </strong>{{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
                 {% block content %}
 
                 {% endblock content %}

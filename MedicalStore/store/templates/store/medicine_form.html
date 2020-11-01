@@ -1,15 +1,21 @@
 {% extends 'store/base.html' %}
 {% block content %}
-    <div class="container">
-      
+    <div class="container jumbotron">
       <form action="{% url 'store:medicine-register' %}" method="POST" class="col-md-10">
-      <h3>Medicine Entry Form</h3>
+      <h2>Medicine Registration</h2><hr>
         {% csrf_token %}
         <div class="form-group">
-            <label for="medname">Medicine Name:</label>
+            <h4>Medicine Name:</h4>
             <input type="text" class="form-control" id="mednane" placeholder="Enter medicine name" name="medname" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="form-group">
+            <h4>Price per item:</h4>
+            <input type="number" class="form-control" id="price" placeholder="Enter medicine price" name="price" required>
+        </div>
+        <hr>
+        <center>
+        <button type="submit" class="btn btn-primary col-md-2">Submit</button>
+        </center>
       </form>
     </div>
 {% endblock content %}
