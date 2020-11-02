@@ -7,7 +7,11 @@
     <h3>Medicine Stock</h3><hr>
     <div class="form-group">
       <label for="name">Medicine Name</label>
-      <input type="text" class="form-control" id="name" name="name" placeholder="Enter Medicine Name" required>
+      <select id="name" name="name" class="form-control" required>
+          {% for medicine in medicines %}
+              <option value="{{ medicine }}">{{ medicine }}</option>
+          {% endfor %}
+      </select>
     </div>
 
     <div class="form-group">
@@ -22,7 +26,11 @@
 
     <div class="form-group">
       <label for="supplier">Supplier Name</label>
-      <input type="text" class="form-control" id="supplier" name="supplier" placeholder="Enter Supplier Name" required>
+       <select id="supplier" name="supplier" class="form-control" required> 
+          {% for supplier in suppliers %}
+              <option value="{{ supplier }}">{{ supplier }}</option>
+          {% endfor %}
+      </select>
     </div>
 
     <div class="form-group">
@@ -33,11 +41,6 @@
     <div class="form-group">
       <label for="exp_date">Expiring Date</label>
       <input type="date" class="form-control" id="exp_date" name="exp_date" required>
-    </div>
-
-    <div class="form-group">
-      <label for="curr_date">Current Date</label>
-      <input type="date" class="form-control" id="arr_date" name="arr_date" required>
     </div>
     
     <hr>

@@ -131,6 +131,25 @@ def staff_update(request, pk):
 	
 #Stock	
 def stock_register(request):
+	try:
+		medicines = []
+		suppliers = []
+		query = 'SELECT med_name FROM medicine ORDER BY med_name'
+		cur.execute(query)
+		med_items = cur.fetchall()
+		for item in med_items:
+			medicines.append(item[0])
+		
+		query = 'SELECT supplier_name FROM supplier ORDER BY supplier_name'
+		cur.execute(query)
+		supp_items = cur.fetchall()
+		for item in supp_items:
+			suppliers.append(item[0])
+		
+	except:
+		messages.error(request, "Some Error Occurred !")
+		return redirect('store:stock-register')
+
 	if request.method=='POST':
 		medname = request.POST['name']
 		quantity = request.POST['quantity']
@@ -138,35 +157,35 @@ def stock_register(request):
 		supplier = request.POST['supplier']
 		mfg_date = request.POST['mfg_date']
 		exp_date = request.POST['exp_date']
-		arr_date = request.POST['arr_date']
-		
+		d = datetime.date.today()
+		arr_date = str(d.year) + '-' +str(d.month) + '-' + str(d.day)
 		try:
-			query=f"SELECT med_id FROM medicine WHERE med_name=\'{medname}\'"
+			query = f"SELECT med_id FROM medicine WHERE med_name=\'{medname}\'"
 			cur.execute(query)
-			medid=cur.fetchall()[0][0]
+			medid = cur.fetchall()[0][0]
 		except:
 			messages.error(request, "Medicine Not Registered ! Please Register First From /register/medicine .")
-			return redirect("store:medicine-register")
+			return redirect("store:stock-all")
 			
 		try:
-			query=f"SELECT supplier_id FROM supplier WHERE supplier_name=\'{supplier}\'"
+			query = f"SELECT supplier_id FROM supplier WHERE supplier_name=\'{supplier}\'"
 			cur.execute(query)
 			supid=cur.fetchall()[0][0]
 		except:
 			messages.error(request, "Supplier Not Registered ! Please Register First From /register/supplier .")
 			return redirect("store:supplier-register")
 						
-		query = f"INSERT INTO stock (quantity, price, mfg_date, exp_date, stock_arrival_date, supplier_id, med_id) VALUES ({quantity}, {price}, \'{mfg_date}\', \'{exp_date}\', \'{arr_date}\', {supid}, {medid})"
+		query = f"INSERT INTO stock (quantity, price, mfg_date, exp_date, stock_arrival_date, supplier_id, med_id, curr_quantity) VALUES ({quantity}, {price}, \'{mfg_date}\', \'{exp_date}\', \'{arr_date}\', {supid}, {medid}, {quantity})"
 		cur.execute(query)
 		conn.commit()
 		messages.success(request, "Record Registered Successfully !")
 		return redirect("store:stock-all")
 	else:
-		return render(request, 'store/stock_form.html')
+		return render(request, 'store/stock_form.html', {'medicines':medicines, 'suppliers':suppliers})
 	
 def stock_all(request):
 	try:
-		cur.execute('SELECT stock_id, quantity, price, mfg_date, exp_date, stock_arrival_date, med_name, supplier_name FROM stock NATURAL JOIN medicine NATURAL JOIN supplier ORDER BY exp_date;')
+		cur.execute('SELECT stock_id, quantity, price, mfg_date, exp_date, stock_arrival_date, med_name, supplier_name, curr_quantity FROM stock NATURAL JOIN medicine NATURAL JOIN supplier ORDER BY exp_date;')
 		records = cur.fetchall()
 	except:
 		messages.error(request, "Some Error Occurred !")
@@ -174,38 +193,90 @@ def stock_all(request):
 	
 	return render(request, 'store/stock_all.html', {'records':records})
 	
+def stock_med_sort(request):
+	query = 'select med_name, sum(quantity),sum(curr_quantity) from stock natural join medicine group by med_id order by med_name;'
+	try:
+		cur.execute(query)
+		records = cur.fetchall()
+	except:
+		messages.error(request, "Some Error Occurred!")
+		return redirect('store:stock-all')
+
+	return render(request, 'store/stock_med_sort.html', {'records':records})
+
 
 #Bill
 def bill_register(request):
+
 	if request.method=='POST':
 		value = []
 		customername = request.POST.getlist('name')[0]
-		print(customername)
 		medname = request.POST.getlist('medicine')
 		qua = request.POST.getlist('quantity')
+		d = datetime.date.today()
+		full_date = str(d.year) + '-' +str(d.month) + '-' + str(d.day)
 		try:
+			for i in range(len(medname)):
+				query = f"select sum(curr_quantity) from medicine natural join stock where med_name='{medname[i]}' group by med_name;"
+				cur.execute(query)
+				data = cur.fetchone()[0]
+				if data < int(qua[i]):
+					messages.error(request, f"Sorry, Required Quantity Of   \"{medname[i]}\"   Not Available !")
+					return redirect('store:store-home')
+
 			for name in request.POST.getlist('medicine'):
-				query=f"SELECT med_price FROM medicine where med_name=\'{name}\'" 
+				query=f"SELECT med_price FROM medicine where med_name=\'{name}\'"
 				cur.execute(query)
 				res = cur.fetchall()
 				value.append(res[0][0])
-				
+						
 			count = 0
 			for q in request.POST.getlist('quantity'):
 				value[count] *= int(q)
 				count = count + 1
 			
 			for i in range(len(value)):
-				query=f"INSERT INTO bill (cust_name, med_name, quantity, price) VALUES (\'{customername}\', \'{medname[i]}\', {qua[i]}, {value[i]})"
+				query=f"INSERT INTO bill (cust_name, med_name, quantity, price, bill_date) VALUES (\'{customername}\', \'{medname[i]}\', {qua[i]}, {value[i]}, '{full_date}')"
 				cur.execute(query)
 				conn.commit()
-			messages.success(request, "Bill Generated!!!")
-			return redirect('store:store-home')
+				query_2 = f"SELECT * FROM stock WHERE med_id IN (SELECT med_id FROM medicine WHERE med_name='{medname[i]}') ORDER BY exp_date;"
+				cur.execute(query_2)
+				records = cur.fetchall()
+				quantities = []
+				item_quantity = int(qua[i])
+				for record in records:
+					quantities.append([record[0],record[8]])
+				print(quantities)
+				total_quantity = 0
+				
+				for j in quantities:
+					total_quantity += j[1]
+				print(total_quantity)
+				if item_quantity > total_quantity:
+					messages.error(request, "Not Sufficient Quantity")
+					return redirect('store:store-home')
+				
+				for k in quantities:
+					if item_quantity > k[1]:
+						item_quantity = item_quantity - k[1]
+						k[1] = 0
+					else:
+						k[1] = k[1] - item_quantity
+						item_quantity = 0
+				print(quantities)
+				for l in quantities:
+					query = f"UPDATE stock SET curr_quantity = {l[1]} WHERE stock_id = {l[0]};"
+					cur.execute(query)
+					conn.commit()
+
+			messages.success(request, "Bill Generated Successfully !")
+				
+			return redirect("store:store-home")
 		except Exception as e:
-			print(e)
-			messages.error(request, "Some Error Occured!!!")
+			print("**\n",e,"\n**")
+			messages.error(request, "Some Error Occurred !")
 			return redirect('store:store-home')
-		
+
 	return render(request, 'store/index.html')
 	
 def bill_all(request):
