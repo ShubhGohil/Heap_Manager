@@ -5,12 +5,12 @@ serverport = 1233
 
 socket = socket(AF_INET, SOCK_STREAM)
 socket.connect((serverip, serverport))
-fd = open("postdata/Nuance.odt", "rb")
+fd = open("postdata/Screenshot from 2020-11-01 14-42-56.png", "rb")
 body = fd.read()
 fd.close()
 
 
-headers="PUT /postdata/sbc.odt HTTP/1.1\r\n"
+headers="PUT /postdata/Screenshot from 2020-11-01 14-42-56.png HTTP/1.1\r\n"
 headers+="Host: Me\r\n"
 headers+="Content-Type: text/plain\r\n"
 headers+="User-Agent: Mozilla\r\n"

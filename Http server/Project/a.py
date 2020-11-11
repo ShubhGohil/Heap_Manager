@@ -3,7 +3,9 @@ from urllib.parse import *
 import os
 import time
 import urllib.parse
+from multiprocessing import Pool
 import sys
+from configparser import ConfigParser
 #print(os.getcwd())#+'/abc'
 #print(os.path.isdir(path))
 '''def resolve(element):
@@ -95,20 +97,46 @@ query2 = "Name=Shubh%25Gohil&College=COEP"
 query3 = 'http://www.cwi.nl/%7Eguido/Python.html?Name=Shubh%20Gohil&College=COEP'
 query4 = 'Name=Shubh%20Gohil,Advait%20Gohil&College=COEP'
 
-#a = urlparse(query)
-#print(a)
-#print(urllib.parse.parse_qs(query))
-#print(urlparse(query1))
-#print(urlparse(query2))
-#print(urlparse(query3))
-#print(urlparse(query4))
 
-def resolve(element):
+'''def resolve(element):
 	params = urllib.parse.parse_qs(element)
 	for key in params:
 		string = params[key][0]
 		params[key] = string
 	return params
 
-print(resolve(query4))
+print(resolve(query4))'''
+'''a = "PUT /postdata/Screenshot from 2020-11-01 14-42-56.png HTTP/1.1\r\n"
+print("Complete", len(a))
+method = a.split(" ", 1)[0] #get the method requested
+#print(len(method))
+path = a[1] #get the path requested
+version = a[-10:-1:] #get the version requested
+#print(path)
+'''
+'''def f(x):
+	return x*x
+	
+with Pool(100) as p:
+	print(p.map(f, [1, 2, 3]))
+	
+from socket import *
+serverip='127.0.0.1'
+serverport = 1232
+
+
+socket = socket(AF_INET, SOCK_STREAM)
+socket.connect((serverip, serverport))
+
+with Pool(100) as p:
+	print(p.map(f, [1, 2, 3]))
+'''
+
+config = ConfigParser()
+config.read('exite.conf')
+print(config.sections())
+print(config['configuration']['DocumentRoot'])
+print(config['configuration']['LOGFILE'])
+
+
 
