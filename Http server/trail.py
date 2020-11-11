@@ -12,19 +12,12 @@ import binascii
 
 month = { 'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12 }
 
-file_extension = {'html':'text/html', 'txt':'text/plain', 'png':'image/png', 'gif': 'image/gif', 'jpg':'image/jpg', 'ico': 'image/x-icon', 'php':'application/x-www-form-urlencoded', '': 'text/plain', 'jpeg':'image/webp', 'pdf': 'application/pdf', 'js': 'application/javascript', 'css': 'text/css', 'mp3' : 'audio/mpeg', 'mp4': 'video/mp4'}
+file_extension = {'html':'text/html', 'txt':'text/plain', 'png':'image/png', 'gif': 'image/gif', 'jpg':'image/jpg', 'ico': 'image/x-icon', 'php':'application/x-www-form-urlencoded', '': 'text/plain', 'jpeg':'image/webp', 'pdf': 'application/pdf', 'js': 'application/javascript', 'css': 'text/css', 'mp3' : 'audio/mpeg', 'mp4': 'video/mp4', 'odt':'application/vnd.oasis.opendocument.text', 'ods':'application/vnd.oasis.opendocument.spreadsheet', 'odg':'application/vnd.oasis.opendocument.graphics', 'zip':'application/zip', 'tar':'application/tar', '7z':'application/x-7z-compressed', 'doc':'application/msword',  'docx':'application/msword', 'xls':'application/x-msexcel', 'xlsx':'application/x-msexcel'}
 
-file_type = {'text/html': '.html','text/plain': '.txt', 'image/png': '.png', 'image/gif': '.gif', 'image/jpg': '.jpg','image/x-icon':'.ico', 'image/webp': '.jpeg', 'application/x-www-form-urlencoded':'.php', 'image/jpeg': '.jpeg', 'application/pdf': '.pdf', 'audio/mpeg': '.mp3', 'video/mp4': '.mp4'}
+file_type = {'text/html': '.html','text/plain': '.txt', 'image/png': '.png', 'image/gif': '.gif', 'image/jpg': '.jpg','image/x-icon':'.ico', 'image/webp': '.jpeg', 'application/x-www-form-urlencoded':'.php', 'image/jpeg': '.jpeg', 'application/pdf': '.pdf', 'audio/mpeg': '.mp3', 'video/mp4': '.mp4', 'application/vnd.oasis.opendocument.text':'odt', 'application/vnd.oasis.opendocument.spreadsheet':'ods', 'application/vnd.oasis.opendocument.graphics':'odg', 'application/x-msexcel':'xlsx', 'application/msword':'docx'}
 
 media_type = ["image/png", "image/jpg", "image/x-icon", "image/gif", "audio/mpeg", "image/webp", "application/pdf", "video/mp4"]
 
-'''def server_status():
-	state = input()
-	if state.lower()=='close':
-		serversocket.close()
-		sys.exit()
-	else:
-		pass'''
 
 serverport = 1232 #server port number
 serversocket = socket(AF_INET, SOCK_STREAM) #create a socket
@@ -33,8 +26,6 @@ serversocket.listen(50) #No. of connectinos allowed to queue
 SERVER = True
 MAIN = True
 DocumentRoot = os.getcwd()
-'''s = threading.Thread(target=server_status, args=())
-s.start()'''
 
 def resolve(element):
 	params = parse_qs(element)
@@ -64,7 +55,10 @@ def readfile(abs_path, statusnumber, size=0, start=0, end=sys.maxsize):
 def content_type(path):
 	try:
 		check=path.split('/')[-1]
-		extension=check.split('.')[-1]
+		if '.tar.' in check:
+			extension='tar'
+		else:
+			extension=check.split('.')[-1]
 		if extension in file_extension.keys():
 			content_type = file_extension[extension]
 			return content_type
@@ -193,7 +187,7 @@ def complete_error_response(clientsocket, code):
 	error_response = error_entitybody(code)
 	content_length = sys.getsizeof(error_response)
 			
-	headers=status_code(code)
+	headers=status_code(code) + "\r\n"
 	headers+="Server: Exite/0.1 Ubuntu\r\n"
 	headers+=date+'\r\n'
 	headers+="Content-Length: "+str(content_length)+"\r\n"
@@ -312,7 +306,9 @@ def get_method(clientsocket, address, method, path, header_list):
 								response_headlist.append("Accept-Range: bytes")
 								response_headlist.append("Content-Range:" + header_dict['range']+'/'+str(file_length))
 							
+						else:
 							isdirectory = 1
+							
 				else:	
 					isdirectory = 1
 			else:
@@ -321,18 +317,19 @@ def get_method(clientsocket, address, method, path, header_list):
 			statusnumber=415
 	elif not os.path.exists(abs_path):
 		newpath = ""
+		found = 0
 		for dirs, subdirs, files in os.walk(DocumentRoot):
 			newpath = dirs
 			allfiles = files
 			if path.split('/')[-1] in allfiles:
-				newpath = newpath.split('/', 7)[-1] #this needs to be changed manually
-				newpath = "127.0.0.1:" + str(serverport) + "/" + newpath	
-				statuscode = 301
+				newpath = newpath.replace(DocumentRoot, '')
+				newpath = "http://127.0.0.1:" + str(serverport) + newpath + path
+				statusnumber = 301
+				found = 1
 				break
-	else:	
-		statusnumber=404
+		if not found:	
+			statusnumber=404
 
-			
 #create response headers
 
 	for header in header_dict:
@@ -348,8 +345,11 @@ def get_method(clientsocket, address, method, path, header_list):
 				response_headlist.append("Content-Language: en-US")
 			
 		elif header=='accept-encoding' and (statusnumber==200 or statusnumber==206):
-			response_headlist.append("Content-Encoding: identity")
-				
+			if '.tar.' in path or '.zip' in path or '.7z' in path:
+				response_headlist.append("Content-Encoding: gzip")
+			else:
+				response_headlist.append("Content-Encoding: identity")
+					
 		elif header=="content-md5" and (statusnumber==200 or statusnumber==206):
 			pass
 			
@@ -377,21 +377,22 @@ def get_method(clientsocket, address, method, path, header_list):
 		newcookie = set_cookie()	
 		response_headlist.append("Set-Cookie : " + newcookie)
 	if statusnumber==301:
-		response_headlist.append("Location : " + "http://127.0.0.1:" + str(serverport) + "/" + newpath)
-		
+		response_headlist.append("Location : " + newpath)
 		
 	response_headlist.appendleft(status_code(statusnumber))
 	
-	if get:
-		if statusnumber==200 or statusnumber==206:
-			cont_typ = content_type(path)
-			if cont_typ!=None:
-				if "accept-charset" in header_dict:
-					response_headlist.append("Content-Type: " + cont_typ + "; charset=utf-8")#; charset=UTF-8")
-				else:
-					response_headlist.append("Content-Type: " + cont_typ)
+	
+	if statusnumber==200 or statusnumber==206:
+		cont_typ = content_type(path)
+		if cont_typ!=None:
+			print('andar')
+			if "accept-charset" in header_dict:
+				response_headlist.append("Content-Type: " + cont_typ + "; charset=utf-8")#; charset=UTF-8")
+			else:
+				response_headlist.append("Content-Type: " + cont_typ)
 			response_headlist.append("Content-Length: " + str(file_length))
-				
+			
+		if get:
 			if isdirectory:
 				entity_body="<html>\n"
 				entity_body+="<head><title>Listing of the directory</title></head>\n"
@@ -402,25 +403,27 @@ def get_method(clientsocket, address, method, path, header_list):
 				entity_body+="<p>Listed are all the files and sub-directories in the requested directory.</p>\n"	
 				entity_body+="</body></html>"
 				entity_body=entity_body.encode()
-		else:
-			entity_body = error_entitybody(statusnumber)
-			entity_body=entity_body.encode()
-	
+	else:
+		entity_body = error_entitybody(statusnumber)
+		entity_body=entity_body.encode()
+		response_headlist.append("Content-Length: " + str(len(entity_body)))
+		
 	response_code = str(statusnumber)
+			
+	entity_headers=''
+	for r in response_headlist:
+		entity_headers+=r+"\n"
+	entity_headers+="\n"
 	
 	try:
-		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", " + user_agent + "\n-----------------------------------------" +"\n\n"
+		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", " + user_agent + '\r\n\r\n' + entity_headers + "-----------------------------------------" +"\n\n"
 		
 		fd = open(DocumentRoot+"/access.log", "a")
 		fd.write(log_entry)
 		fd.close()
 	except:
 		pass
-		
-	entity_headers=''
-	for r in response_headlist:
-		entity_headers+=r+"\n"
-	entity_headers+="\n"
+	
 	
 	entity_headers=entity_headers.encode()				
 
@@ -429,10 +432,9 @@ def get_method(clientsocket, address, method, path, header_list):
 	else:
 		response = entity_headers
 		
-		
 	clientsocket.send(response)
 	clientsocket.close()
-
+ 
 
 
 #POST
@@ -446,7 +448,7 @@ def post_method(clientsocket, address, header_list, path, data=""):
 	entity_headers="" #stores the complete response to be sent
 	log_data = ''
 	content_type = ''
-	
+	flag = 0
 
 	byte = isinstance(data, bytes)
 	
@@ -454,10 +456,9 @@ def post_method(clientsocket, address, header_list, path, data=""):
 	request_method_line = header_list.pop(0)
 	date = getdatetime()
 
-
 	for header in header_list: #extracts each headers and its value
 		temp=header.split(':')
-		header_dict[temp[0].lower()] = temp[1]	
+		header_dict[temp[0].lower()] = temp[1]
 
 
 	#if a file is posted
@@ -465,17 +466,17 @@ def post_method(clientsocket, address, header_list, path, data=""):
 		
 		value_type = header_dict["content-type"].split(';')
 		boundry = value_type[1].split('=')[1]
-		
 		if not byte:
 
-			all_data = data.split('--'+boundry)
+			#all_data = data.split('--'+boundry)
+			all_data = data.split(boundry)
 			
 			for individual in all_data:
 				if "Content-Disposition" in individual:
 		
 					details = individual.split("\r\n\r\n", 1)
 					file_data = details[1]				
-					
+
 					if "Content-Type" in details[0]:
 						content_type = details[0].split('\r\n')[-1]
 						filetype = content_type.split(':')[-1].replace(" ", "")
@@ -484,26 +485,28 @@ def post_method(clientsocket, address, header_list, path, data=""):
 					
 						newpath = "/postdata/" + filename
 					
-						fd = open(DocumentRoot+newpath, 'w')
+						fd = open(DocumentRoot+newpath, 'a')
 						fd.write(file_data)
 						fd.close()
 
 					if 'filename' in individual:
 						log_data += individual.split('\r\n\r\n', 1)[0] + '\n\n'
 						log_data += "Location: " + DocumentRoot + '/post_data/' + filename
+						flag = 1
 					else:
-						log_data += individual
-
+						log_data += individual		
 					
 		else:
 			log_data = bytes()
-			all_data = data.split(bytes('--'+boundry, 'utf-8'))
+			#all_data = data.split(bytes('--'+boundry, 'utf-8'))
+			all_data = data.split(bytes(boundry, 'utf-8'))
+
 			
 			for individual in all_data:
-				
 				if b"Content-Disposition" in individual:
 					if b'filename' in individual:
 						log_data += individual.split(b'\r\n\r\n', 1)[0] + b'\n\n'
+						flag = 1
 					else:
 						log_data += individual
 					
@@ -520,7 +523,7 @@ def post_method(clientsocket, address, header_list, path, data=""):
 						
 						newpath = "/postdata/"+filename
 						
-						fd = open(DocumentRoot+newpath, 'wb')
+						fd = open(DocumentRoot+newpath, 'ab')
 						fd.write(file_data)
 						fd.close()
 						log_data += bytes("Location: " + DocumentRoot + newpath, 'utf-8')
@@ -534,22 +537,25 @@ def post_method(clientsocket, address, header_list, path, data=""):
 	entity_headers+=status_code(statusnumber)+"\r\n"
 	entity_headers+="Date: "+getdatetime()+"\r\n"	
 	entity_headers+="Server: Exite/0.1 Ubuntu\r\n"
+	entity_headers+="Accept-Charset: utf-8\r\n"
+	
 	if content_type: 			
-		entity_headers+=content_type+"\r\n"
+		entity_headers+="Content-Type: " + content_type + '; charset=utf-8'+"\r\n"
+	if flag:
 		entity_headers+="Content-Location: " + newpath + "\r\n"
+		
 	if 'cookie' not in header_dict:
 		newcookie = set_cookie()	
 		entity_headers+="Set-Cookie : " + newcookie + "\r\n"
 
 	
-	entity_body = "\r\n<html><head><title>Done</title></head><body>Done</body></html>\r\n"
+	entity_body = "\r\n<!DOCTYPE html>\r\n<html>\r\n<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\r\n<meta content=\"utf-8\" http-equiv=\"encoding\">\r\n<title>Done</title>\r\n</head>\r\n<body>Done</body>\r\n</html>\r\n"
 	response = entity_headers + entity_body
-
 
 	response_code = str(statusnumber)
 	
 	try:
-		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n" + "The data of the form is:\n" + str(log_data) + "\n------------------------------------------" +"\n\n"
+		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n" + entity_headers + '\r\n' + "The data of the form is:\n" + str(log_data) + "\n------------------------------------------" +"\n\n"
 
 		fd = open(DocumentRoot+"/access.log", "a")
 		fd.write(log_entry)
@@ -559,7 +565,6 @@ def post_method(clientsocket, address, header_list, path, data=""):
 		pass
 		
 	clientsocket.send(response.encode())
-	#print(response)
 	clientsocket.close()
 
 
@@ -582,18 +587,19 @@ def put_method(clientsocket, address, header_list, path, data=""):
 	log_data = data
 
 
+
 	for header in header_list: #extracts each headers and its value
 		temp=header.split(':')
 		header_dict[temp[0].lower()] = temp[1]
 	
-	abs_path = DocumentRoot + path
+	abs_path = DocumentRoot + '/putdata' + path
 	
 	filename = path.split('/')[-1]
 	
 	if data:
 		if os.path.exists(abs_path):
 			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
-			
+				
 				try:
 					if not byte:
 						fd = open(abs_path, 'w')
@@ -602,8 +608,8 @@ def put_method(clientsocket, address, header_list, path, data=""):
 					fd.write(data)
 					fd.close()
 					statusnumber = 200
-					fpath = path
-					
+					fpath = '/putdata' + path
+						
 				except:
 					statusnumber=500
 			else:
@@ -618,36 +624,52 @@ def put_method(clientsocket, address, header_list, path, data=""):
 				fd.close()
 				statusnumber = 201
 				fpath = "/putdata/" + filename 
-					
+						
 			except:
 				statusnumber = 500	
+	
 	else:
 		statusnumber = 400
 
+		entity_headers = status_code(statusnumber) + '\r\n'
+		entity_headers += "Date: " + getdatetime() + '\r\n'
+		entity_headers += "Server: Exite/0.1 Ubuntu\r\n\r\n"
+
+		response_code = str(statusnumber)
+		try:
+			fd = open(DocumentRoot+"/access.log", "a")
+			log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n\n" + entity_headers + "------------------------------------------" +"\n\n"
+			fd.write(log_entry)
+			fd.close()
+		except:
+			pass
+
+		complete_error_response(clientsocket, statusnumber)
+	
 	entity_headers = status_code(statusnumber) + '\r\n'
 	entity_headers += "Date: " + getdatetime() + '\r\n'
 	entity_headers += "Server: Exite/0.1 Ubuntu\r\n"
 	entity_headers += "Content-Location: " + fpath + '\r\n\r\n'
-
 			
 	if statusnumber == 200 or statusnumber == 201:
 		entity_body = "<html>\r\n<head><title>Successfull</title></head>\r\n<body><p>The data has been saved.</p>\r\n</body>\r\n</html>"
 		response = entity_headers + entity_body
-	
+		
 	else:
 		entity_body = error_entitybody(statusnumber)
 		response = entity_headers + entity_body
-
-		
-	response_code = str(statusnumber)
 	
+			
+	response_code = str(statusnumber)
+		
 	if "content-type" in header_dict.keys():
 		filetype = header_dict["content-type"]
 	elif filename.split(".")[-1] in file_extension.keys():
 		filetype = file_extension[filename.split(".")[-1]]	
 	
+	
 	try:
-		fd = open(os.getcwd()+"/access.log", "a")
+		fd = open(DocumentRoot+"/access.log", "a")
 		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n\n" + "Location:" + DocumentRoot + fpath + "\n\n" + "Content-Type: " + filetype + "\n------------------------------------------" +"\n\n"
 		fd.write(log_entry)
 		fd.close()
@@ -657,8 +679,9 @@ def put_method(clientsocket, address, header_list, path, data=""):
 	clientsocket.send(response.encode())
 	clientsocket.close()
 
+
 #DELETE
-def delete_method(clientsocket, adderss, path, header_list):
+def delete_method(clientsocket, address, path, header_list):
 	response_headlist=deque() #stores response headers
 	response_message=''  #stores the message to be sent from server
 	header_dict={} #stores the request headers with its content
@@ -683,6 +706,9 @@ def delete_method(clientsocket, adderss, path, header_list):
 			if os.path.isfile(abs_path):
 				os.remove(abs_path)
 			elif os.path.isdir(abs_path):
+				for dirs, subdirs, files in os.walk(abs_path):
+					for f in files:
+						os.remove(os.path.join(dirs, f))
 				os.rmdir(abs_path)
 		else:
 			statusnumber=403
@@ -724,7 +750,7 @@ def delete_method(clientsocket, adderss, path, header_list):
 	
 	try:
 		fd = open(DocumentRoot+"/access.log", "a")
-		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n\n" + "Location:" + DocumentRoot + fpath + "\n\n" + "Content-Type: " + filetype + "\n------------------------------------------" +"\n\n"
+		log_entry = client_ip + ", [" + date + "], " + request_method_line + ", " + response_code + ", \n\n" + entity_headers + "Location:" + DocumentRoot + fpath + "\n\n" + "Content-Type: " + filetype + "\n------------------------------------------" +"\n\n"
 		fd.write(log_entry)
 		fd.close()
 	except:
@@ -744,15 +770,22 @@ def client_request(clientsocket, address):
 	try:
 		message = message.decode() #decode the input #'utf-8'
 		requests = message.split('\r\n\r\n', 1)
+		
 		entity_header = requests[0]
-			
+
 		header_list = entity_header.split('\r\n')
 		for header in header_list: #extracts each headers and its value
 			temp=header.split(':')
 			if temp[0].lower() == 'content-length':
 				length = int(temp[1].replace(" ",""))
 				break
-			take = 8192	
+		try:
+			entity_data = requests[1]
+		except:
+			entity_data = ''
+		take = 8192
+		if length>take:
+			l = length	
 			while True:
 				if length > take:
 					temp = clientsocket.recv(take)
@@ -765,18 +798,17 @@ def client_request(clientsocket, address):
 					break
 				length -= take
 					
-		requests = message.split('\r\n\r\n', 1)
-		entity_header = requests[0]
-			
-		header_list = entity_header.split('\r\n') #split each header
-
-		try:		
+			requests = message.split('\r\n\r\n', 1)
+			entity_header = requests[0]
 			entity_data = requests[1]
-			if l > len(entity_data):
-				entity_data += clientsocket.recv(l - len(entity_data)).decode()		
-		except:
-			entity_data = ''
-
+				
+			header_list = entity_header.split('\r\n') #split each header
+	
+			try:		
+				if l > len(entity_data):
+					entity_data += clientsocket.recv(l - len(entity_data)).decode()		
+			except:
+				entity_data = ''
 
 	except UnicodeDecodeError:
 		#message = message.decode(errors = 'ignore')
@@ -795,47 +827,48 @@ def client_request(clientsocket, address):
 			if temp[0].lower() == 'content-length':
 				length = int(temp[1].replace(" ",""))
 				break
-		
-		l = length
-		length = length - (len(message) - len(entity_header))	
-		
-		take = 8192
-		while True:
-			if length > take:
-				temp = clientsocket.recv(take)
-				message += temp
-			else:
-				temp = clientsocket.recv(length)
-				message += temp
-				break
-			length -= take
-		
-		requests = message.split(b'\r\n\r\n', 1)
-		entity_header = requests[0]
-		entity_header = entity_header.decode()
 
-		header_list = entity_header.split('\r\n') #split each header
+		entity_data = requests[1]
+
+		take = 8192		
+		if length>take:
+			l = length
+			length = length - (len(message) - len(entity_header))
+			while True:
+				if length > take:
+					temp = clientsocket.recv(take)
+					message += temp
+				else:
+					temp = clientsocket.recv(length)
+					message += temp
+					break
+				length -= take
+		
+			requests = message.split(b'\r\n\r\n', 1)
+			entity_header = requests[0]
+			entity_header = entity_header.decode()
 	
-		try:		
+			header_list = entity_header.split('\r\n') #split each header
 			entity_data = requests[1]
-			if l > len(entity_data):
-				entity_data += clientsocket.recv(l - len(entity_data))			
-		except:
-			entity_data = ''		
+			try:		
+				if l > len(entity_data):
+					entity_data += clientsocket.recv(l - len(entity_data))			
+			except:
+				entity_data = ''		
 			
 	first_line = header_list[0] #gets the first line of message	
 	
 	method = first_line.split(" ", 1)[0] #get the method requested
 	version = first_line[-8::] #get the version requested
 	path = first_line[len(method)+1 : len(first_line)-len(version)-1] #get the path requested	
-			
+	
 	if version=='HTTP/1.1':
 		if path:
 			#header_list.pop(0) #remove the first line since the elements were analysed
 
 			if method == 'GET' or method == 'HEAD':
 				get_method(clientsocket, address, method, path, header_list) #call get method
-					
+								
 			elif method == 'POST':
 				post_method(clientsocket, address, header_list, path, entity_data) #call post method
 				
@@ -854,52 +887,45 @@ def client_request(clientsocket, address):
 	else:			
 		complete_error_response(clientsocket, 505)
 
-'''def server():
+def server():
 	global SERVER, MAIN #, lthread
-	print("ENtered server")
 
 	while MAIN:
 		while SERVER:
 			if not MAIN:
 				break
-			#start = 0
 			connectionsocket, addr = serversocket.accept()
 			t1 = threading.Thread(target=client_request, args=(connectionsocket, addr))
 			t1.start()
-			lthread.append(connectionsocket)
-			if(len(lthread) < MAX_REQUESTS):
-				start_new_thread(clientfun, (connectionsocket, addr, start))
-			else:
-				status(connectionsocket, 503)
-				connectionsocket.close()
-			
-	serversocket.close()'''
+	serversocket.close()
 	
 	
-'''def manager():
+def manager():
 	global SERVER, MAIN  #, conn
-	print("Entered")
 	while True:
-		string = input("Enter input")
 		if string == 'stop':
 			SERVER = False
 		elif string == 'restart':
 			SERVER = True
 		elif string == 'quit':
 			MAIN = False
-			conn = False
-			break'''
+			#conn = False
+			break
 		
 
-'''thread = threading.Thread(target=manager, args=())
+thread = threading.Thread(target=manager, args=())
 thread.start()
-server()'''
-				
-while True:
+thread1 = threading.Thread(target=server, args=())
+thread1.start()
+
+#server()
+sys.exit()
+			
+'''while True:
 
 	connectionsocket, addr = serversocket.accept()
 	t1 = threading.Thread(target=client_request, args=(connectionsocket, addr))
-	t1.start()
+	t1.start()'''
 	
 
 #https://github.com/roopi7760/WebServer/blob/master/Server.py
