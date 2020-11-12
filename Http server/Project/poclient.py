@@ -61,19 +61,9 @@ headers+="Accept-Encoding: */*\r\n\r\n"
 '''
 ###################################################
 
-headers29="GET /Suits Opening .mp3 HTTP/1.1\r\n"
-headers29+=f"Host: {serverip}:{serverport}\r\n"
-headers29+="Content-Type: audio/mpeg\r\n"
-#headers29+=f"Content-length: {l8}\r\n"
-headers29+="User-Agent: Mozilla\r\n"
-headers29+="Accept-Language: en-US\r\n"
-headers29+="Accept-Encoding: */*\r\n\r\n"
-headers29 = bytes(headers29, "utf-8") 
-message29=headers29
 
-
-#headers = bytes(headers, "utf-8")
-#message=headers+body
-socket.send(message29)
+headers = bytes(headers, "utf-8")
+message=headers+body
+socket.send(message)
 ans = socket.recv(8192)
 print(ans)

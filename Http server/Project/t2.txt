@@ -1,1 +1,83 @@
 kydtsdfghkjl
+
+headers3="GET /index.html HTTP/1.1\r\n"
+headers3+=f"Host: {serverip}:{serverport}\r\n"
+headers3+="Content-Type: text/html\r\n"
+headers3+="User-Agent: Mozilla\r\n"
+headers3+="Accept-Language: en-US\r\n"
+headers3+="Accept-Encoding: */*\r\n"
+headers3+="If-Modified-Since: Sun, 07 Nov 2020 12:00:00\r\n\r\n"
+headers3 = bytes(headers3, "utf-8")
+message3=headers3
+
+headers.append(message3)
+
+###################################################
+
+
+fd7 = open("VID-20201105-WA0002.mp4", 'rb')
+d2 = fd7.read()
+fd7.close()
+
+body9 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nJohn\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="lname"\r\n\r\nDoe\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="VID-20201105-WA0002.mp4"\r\nContent-Type: video/mp4\r\n\r\n' + d2 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
+
+l9 = len(body9)
+
+headers38="POST /VID-20201105-WA0002.mp4 HTTP/1.1\r\n"
+headers38+=f"Host: {serverip}:{serverport}\r\n"
+headers38+="Content-Type: multipart/form-data; boundry=-----------------------------133100775917425215711097468907\r\n"
+headers38+="User-Agent: Mozilla\r\n"
+headers38+="Accept-Language: en-US\r\n"
+headers38+=f"Content-Length: {l1}\r\n"
+headers38+="Accept-Charset: utf-8\r\n"
+headers38+="Accept-Encoding: */*\r\n\r\n"
+headers38 = bytes(headers38, "utf-8") 
+message38 = headers38+body9
+
+headers.append(message38)
+
+
+fd5 = open("postdata/111803052_Shubh_Gohil_CaseStudy_2&3.ods", 'rb')
+body7 = fd5.read()
+fd5.close()
+
+l7 = len(body7)
+
+headers28="PUT /111803052_Shubh_Gohil_CaseStudy_2&3.ods HTTP/1.1\r\n"
+headers28+=f"Host: {serverip}:{serverport}\r\n"
+headers28+="Content-Type: application/vnd.oasis.opendocument.spreadsheet\r\n"
+headers28+=f"Content-length: {l7}\r\n"
+headers28+="User-Agent: Mozilla\r\n"
+headers28+="Accept-Language: en-US\r\n"
+headers28+="Accept-Encoding: */*\r\n\r\n"
+headers28 = bytes(headers28, "utf-8") 
+message28=headers28+body7
+
+headers.append(message28)
+
+##########################################
+
+headers30="DELETE /t1.txt HTTP/1.1\r\n"
+headers30+=f"Host: {serverip}:{serverport}\r\n"
+headers30+="Content-Type: text/plain\r\n"
+headers30+="User-Agent: Mozilla\r\n\r\n"
+headers30 = bytes(headers30, "utf-8")
+message30=headers30
+
+headers.append(message30)
+
+########################################
+
+headers19="HEAD /Suits Opening .mp3 HTTP/1.1\r\n"
+headers19+=f"Host: {serverip}:{serverport}\r\n"
+headers19+="Content-Type: audio/mpeg\r\n"
+headers19+="User-Agent: Mozilla\r\n"
+headers19+="Accept-Language: en-US\r\n"
+headers19+="Accept-Encoding: */*\r\n\r\n"
+headers19 = bytes(headers19, "utf-8") 
+message19=headers19
+
+headers.append(message19)
+
+###################################################
+

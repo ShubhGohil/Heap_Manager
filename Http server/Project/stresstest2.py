@@ -2,7 +2,12 @@ from socket import *
 import sys
 from multiprocessing import Pool
 import threading
+from configparser import ConfigParser
 
+config = ConfigParser()
+config.read('exite.conf')
+
+output = config['configuration']['result']
 
 serverip='127.0.0.1'
 serverport = 1232
@@ -283,12 +288,13 @@ headers.append(message20)
 
 fd1 = open("/home/shubh/Documents/interview.odt", 'rb')
 d1 = fd1.read()
+fd1.close()
 
 body1 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nJohn\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="lname"\r\n\r\nDoe\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="interview.odt"\r\nContent-Type: application/vnd.oasis.opendocument.text\r\n\r\n' + d1 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
 
 l1 = len(body1)
 
-headers21="POST /form.html HTTP/1.1\r\n"
+headers21="POST /interview.odt HTTP/1.1\r\n"
 headers21+=f"Host: {serverip}:{serverport}\r\n"
 headers21+="Content-Type: multipart/form-data; boundry=-----------------------------133100775917425215711097468907\r\n"
 headers21+="User-Agent: Mozilla\r\n"
@@ -572,8 +578,9 @@ headers.append(message37)
 
 fd7 = open("VID-20201105-WA0002.mp4", 'rb')
 d2 = fd7.read()
+fd7.close()
 
-body9 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nJohn\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="lname"\r\n\r\nDoe\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="interview.odt"\r\nContent-Type: video/mp4\r\n\r\n' + d2 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
+body9 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nJohn\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="lname"\r\n\r\nDoe\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="VID-20201105-WA0002.mp4"\r\nContent-Type: video/mp4\r\n\r\n' + d2 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
 
 l9 = len(body9)
 
@@ -594,8 +601,9 @@ headers.append(message38)
 
 fd8 = open("VID-20201105-WA0002.mp4", 'rb')
 d3 = fd8.read()
+fd8.close()
 
-body10 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nApple\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nOrange\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data;name="fname"\r\n\r\nGrapes\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nCustard Apple\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data;   name="lname"\r\n\r\nMango\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="interview.odt"\r\nContent-Type: video/mp4\r\n\r\n' + d3 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
+body10 = b'-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nApple\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nOrange\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data;name="fname"\r\n\r\nGrapes\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="fname"\r\n\r\nCustard Apple\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data;   name="lname"\r\n\r\nMango\r\n-----------------------------133100775917425215711097468907\r\nContent-Disposition: form-data; name="myfile"; filename="VID-20201105-WA0002.mp4"\r\nContent-Type: video/mp4\r\n\r\n' + d3 + b'\r\n' + b'-----------------------------133100775917425215711097468907--\r\n'
 
 l10 = len(body10)
 
@@ -614,8 +622,7 @@ headers.append(message38)
 
 ###################################################
 
-body11 = 'fname=Shubh&lname=Gohil'
-
+body11 = 'fname=Shubh&lname=Gohil&college=Coep&year=TY'
 
 l11 = len(body11)
 
@@ -634,18 +641,78 @@ headers.append(message40)
 
 ##########################################
 
-headers24="PUT /trail.html HTTP/1.1\r\n"
-headers24+=f"Host: {serverip}:{serverport}\r\n"
-headers24+="Content-Type: text/html\r\n"
-headers24+="User-Agent: Mozilla\r\n"
-headers24+="Accept-Language: en-US\r\n"
-headers24+="Accept-Encoding: */*\r\n\r\n"
-headers24 = bytes(headers24, "utf-8") 
-message24=headers24
+headers41="PUT /VID-20201105-WA0002.mp4 HTTP/1.1\r\n"
+headers41+=f"Host: {serverip}:{serverport}\r\n"
+headers41+="Content-Type: video/mp4\r\n"
+headers41+="User-Agent: Mozilla\r\n"
+headers41+="Cookie: u84g3D\r\n"
+headers41+="Accept-Language: en-US\r\n"
+headers41+="Accept-Encoding: */*\r\n\r\n"
+headers41 = bytes(headers41, "utf-8") 
+message41=headers41
 
-headers.append(message24)
+headers.append(message41)
 
 ##########################################
+
+headers42="OPTION /VID-20201105-WA0002.mp4 HTTP/1.1\r\n"
+headers42+=f"Host: {serverip}:{serverport}\r\n"
+headers42+="Content-Type: text/html\r\n"
+headers42+="User-Agent: Mozilla\r\n"
+headers42 = bytes(headers42, "utf-8") 
+message42=headers42
+
+headers.append(message42)
+
+##########################################
+
+headers43="TRACE /VID-20201105-WA0002.mp4 HTTP/1.1\r\n"
+headers43+=f"Host: {serverip}:{serverport}\r\n"
+headers43+="Content-Type: text/html\r\n"
+headers43+="User-Agent: Mozilla\r\n"
+headers43+="Cookie: u84g3D\r\n"
+headers43 = bytes(headers43, "utf-8") 
+message43=headers43
+
+headers.append(message43)
+
+##########################################
+
+headers44="GET /index.html HTTP/1.1\r\n"
+headers44+="Content-Type: text/html\r\n"
+headers44+="User-Agent: Mozilla\r\n"
+headers44+="Accept-Language: en-US\r\n"
+headers44+="Accept-Encoding: */*\r\n\r\n"
+headers44 = bytes(headers44, "utf-8")
+message44=headers44
+
+headers.append(message44)
+
+###################################################
+
+
+headers45="DELETE /t3.txt HTTP/1.1\r\n"
+headers45+=f"Host: {serverip}:{serverport}\r\n"
+headers45+="Content-Type: text/plain\r\n"
+headers45+="Authorization: 1234\r\n"
+headers45+="User-Agent: Mozilla\r\n\r\n"
+headers45 = bytes(headers45, "utf-8")
+message45=headers45
+
+
+########################################
+
+headers46="DELETE /t3.txt HTTP/1.1\r\n"
+headers46+=f"Host: {serverip}:{serverport}\r\n"
+headers46+="Content-Type: text/plain\r\n"
+headers46+="Authorization: 12345678\r\n"
+headers46+="User-Agent: Mozilla\r\n\r\n"
+headers46 = bytes(headers46, "utf-8")
+message46=headers46
+
+########################################
+
+headers = headers * 10
 
 def send(message):
 	
@@ -654,6 +721,9 @@ def send(message):
 
 	clientsocket.send(message)
 	ans = clientsocket.recv(8192)
+	
+	original = sys.stdout
+	sys.stdout = open(output, 'a')
 	print("Response for request from ", clientsocket)
 	try:
 		print(ans.decode('utf-8'))
@@ -661,25 +731,10 @@ def send(message):
 		print(ans)
 		
 	print()
+	sys.stdout = original
 	clientsocket.close()	
 
 with Pool(5) as p:
 	p.map(send, headers)
-
-'''
-clientsocket = socket(AF_INET, SOCK_STREAM)
-clientsocket.connect((serverip, serverport))
-
-clientsocket.send(message37)
-ans = clientsocket.recv(8192)
-#print("Response for request from ", clientsocket)
-try:
-	print(ans.decode('utf-8'))
-except:
-	print(ans)
-		
-print()
-clientsocket.close()	
-'''
 
 

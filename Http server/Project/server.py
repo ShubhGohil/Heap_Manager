@@ -19,19 +19,21 @@ file_type = {'text/html': '.html','text/plain': '.txt', 'image/png': '.png', 'im
 
 media_type = ["image/png", "image/jpg", "image/x-icon", "image/gif", "audio/mpeg", "image/webp", "application/pdf", "video/mp4"]
 
+config = ConfigParser()
+config.read('exite.conf')
+
 DocumentRoot = config['configuration']['DocumentRoot']
 logfile = config['configuration']['LogFile']
 maxconnection = int(config['configuration']['MaxConnections'])
 byte = int(config['configuration']['Byte'])
+authorization_key = config['configuration']['authorizationkey']
+
 serverport = int(config['configuration']['Port']) #server port number
 serversocket = socket(AF_INET, SOCK_STREAM) #create a socket
 serversocket.bind(("127.0.0.1", serverport)) #bind the server with ip and port
 serversocket.listen(20) #No. of connectinos allowed to queue
 SERVER = True
 MAIN = True
-
-config = ConfigParser()
-config.read('exite.conf')
 
 connections = [] #stores all the current connections
 
@@ -89,6 +91,8 @@ def error_entitybody(code):
 		response+="<p>The entity was not modified on the server.</p>\r\n"
 	elif code==400:
 		response+="<p>The server was unable to understand your request.</p>\r\n"
+	elif code==401:
+		response+="<p>The client is not authorized to carry the requested operation.</p>\r\n"
 	elif code==405:
 		response+="<p>The server was unable to solve your query due to unfamilier method.</p>\r\n"
 	elif code==500:
@@ -127,6 +131,8 @@ def status_code(code):
 		return "HTTP/1.1 304 Not Modified"
 	elif code==400:
 		return "HTTP/1.1 400 Bad Request"
+	elif code==401:
+		return "HTTP/1.1 401 Unauthorized"
 	elif code==405:	
 		return "HTTP/1.1 405 Method Not Allowed"
 	elif code==404:
@@ -252,32 +258,34 @@ def get_method(clientsocket, address, method, path, header_list):
 		
 	abs_path = DocumentRoot+path #stores the complete path of requested file or directory
 
-	if 'range' in header_dict.keys():
-		if 'if-range' in header_dict.keys():
-			if not compare_time_if_modified(abs_path, header_dict['if-range']):
+	if os.path.exists(abs_path):
+
+		if 'range' in header_dict.keys():
+			if 'if-range' in header_dict.keys():
+				if not compare_time_if_modified(abs_path, header_dict['if-range']):
+					brange = header_dict['range'].split('=')[1]
+					start = int(brange.split('-')[0].replace(' ',''))
+					end = int(brange.split('-')[1])
+					size = end - start + 1			
+			elif 'if-unmodified-since' in header_dict.keys():
+				if not compare_time_if_modified(abs_path, header_dict['if-unmodified-since']):
+					brange = header_dict['range'].split('=')[1]
+					start = int(brange.split('-')[0].replace(' ',''))
+					end = int(brange.split('-')[1])
+					size = end - start + 1						
+				
+			else:
 				brange = header_dict['range'].split('=')[1]
 				start = int(brange.split('-')[0].replace(' ',''))
 				end = int(brange.split('-')[1])
-				size = end - start + 1			
-		elif 'if-unmodified-since' in header_dict.keys():
-			if not compare_time_if_modified(abs_path, header_dict['if-unmodified-since']):
-				brange = header_dict['range'].split('=')[1]
-				start = int(brange.split('-')[0].replace(' ',''))
-				end = int(brange.split('-')[1])
-				size = end - start + 1						
-			
-		else:
-			brange = header_dict['range'].split('=')[1]
-			start = int(brange.split('-')[0].replace(' ',''))
-			end = int(brange.split('-')[1])
-			size = end - start + 1
-	
-		range_head = 1		
-		statusnumber=206
+				size = end - start + 1
+		
+			range_head = 1		
+			statusnumber=206
 	
 #creates message to be sent	
 	if os.path.exists(abs_path): #check if path is valid
-		
+			
 		if os.path.isfile(abs_path): #checks if file or not
 		#check for read write permission of a file or dir
 			if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK): 
@@ -695,24 +703,33 @@ def delete_method(clientsocket, address, path, header_list):
 	fpath = path
 	
 	abs_path = DocumentRoot + path
-	
+		
 	for header in header_list: #extracts each headers and its value
 		temp=header.split(':')
 		header_dict[temp[0].lower()] = temp[1]
 
-	if os.path.exists(abs_path):
-		if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
-			if os.path.isfile(abs_path):
-				os.remove(abs_path)
-			elif os.path.isdir(abs_path):
-				for dirs, subdirs, files in os.walk(abs_path):
-					for f in files:
-						os.remove(os.path.join(dirs, f))
-				os.rmdir(abs_path)
+	print(header_dict)
+
+	if 'authorization' in header_dict.keys():
+		if header_dict['authorization'].replace(" ","")==authorization_key:
+			if os.path.exists(abs_path):
+				if os.access(abs_path, os.R_OK) and os.access(abs_path, os.W_OK):
+					if os.path.isfile(abs_path):
+						os.remove(abs_path)
+					elif os.path.isdir(abs_path):
+						for dirs, subdirs, files in os.walk(abs_path):
+							for f in files:
+								os.remove(os.path.join(dirs, f))
+						os.rmdir(abs_path)
+				else:
+					statusnumber=403
+			else:
+				statusnumber=404
 		else:
-			statusnumber=403
+			statusnumber = 401			
 	else:
-		statusnumber=404
+		statusnumber = 401	
+
 		
 	for header in header_dict:
 		if header.lower()=="host":
@@ -723,7 +740,7 @@ def delete_method(clientsocket, address, path, header_list):
 
 		elif header.lower()=='content-type':
 			filetype = header_dict['content-type']
-						
+
 		else:
 			continue
 	
@@ -741,9 +758,10 @@ def delete_method(clientsocket, address, path, header_list):
 		entity_body+="<body><p>The requested entity has been deleted.</p></body>\r\n"
 		entity_body+="</html>\r\n"
 						
-		response = entity_headers + entity_body
 	else:
-		response = entity_headers
+		entity_body = error_entitybody(statusnumber)
+	
+	response = entity_headers + entity_body
 	
 	response_code = str(statusnumber)
 	
@@ -923,5 +941,4 @@ thread1.start()
 sys.exit()
 			
 
-#https://github.com/roopi7760/WebServer/blob/master/Server.py
-#https://github.com/sm8799/HTTP-Web-Server/blob/master/webserver.py
+
