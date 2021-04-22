@@ -1,0 +1,72 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+       <link rel="stylesheet" type="text/css" href="/css/style2.css"> 
+    <link rel="stylesheet" type="text/css" href="/css/style4.css">
+    <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+     
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  </head>
+  <body>
+   <div class="wrapper">
+   <%- include("./partials/nav_doctor.ejs", {information: information, url: url}) %>
+      <div class="main_content">
+         <div class="header">Welcome! Have a healthy day.</div>  
+         <div class=info>
+            <div class="content">
+            <h1 style="margin-bottom: 25px;">Doctor's Schedule</h1>
+            <form method="POST" action="<%= url %>/setschedule">
+               <div id="survey_options">
+                  <input type="text" name="date" class="survey_options" size="50" placeholder="Date" list="dates" required>
+                  <datalist id="dates">
+                     <% let i = new Date %>
+                     <option value="<%= i.getDate() %>">
+                     <option value="<%= i.getDate()+1 %>">
+                     <option value="<%= i.getDate()+2 %>">
+                  </datalist>
+                  <input type="text" name="timeslot[]" class="survey_options" size="50" placeholder="Time(24hr format)" pattern="([01]?[0-9]|2[0-3]).[0-5][0-9]" maxlength="5" required>
+               </div>
+               <div class="controls">
+                  <span id="add_more_field"><i class="fa fa-plus"></i>Add more</a>
+                  <span id="remove_field"><i class="fa fa-plus"></i>Remove Field</a>
+               </div>
+               <center><input type="submit" style="width: 80px; height: 30px;"></center>
+            </form>
+         </div>
+         </div>
+      </div>
+   </div>
+
+ <script>
+    var survey_options = document.getElementById('survey_options');
+    var add_more_field = document.getElementById('add_more_field');
+    var remove_field = document.getElementById('remove_field');
+  
+    add_more_field.onclick = function(){
+
+       var newField = document.createElement('input');
+       newField.setAttribute('type','text');
+       newField.setAttribute('name','timeslot[]');
+       newField.setAttribute('class','survey_options');
+       newField.setAttribute('size','50');
+       newField.setAttribute('placeholder','Time(24hr format)');
+       survey_options.appendChild(newField);
+
+    }
+    
+    remove_field.onclick = function(){
+
+        var input_tags = survey_options.getElementsByTagName('input');
+        if(input_tags.length > 2){
+            survey_options.removeChild(input_tags[(input_tags.length)-1]);
+        }
+    }        
+ </script>
+    
+  </body>
+</html>

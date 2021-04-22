@@ -1,6 +1,5 @@
 const express = require("express");
 const patienthandler = require("./controller/patientcontroller");
-//const { update } = require("./controller/patientcontroller");
 const doctorhandler = require("./controller/doctorcontroller");
 const adminhandler = require("./controller/admincontroller");
 const bookinghandler = require("./controller/bookingcontroller");
@@ -32,7 +31,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.set("view engine", "ejs");
 
-
 const sessionStore = new MongoStore({
     mongoUrl: 'mongodb://localhost:27017/trail',
     collectionName: 'sessions',
@@ -51,11 +49,11 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
- app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
     console.log(req.session);
     console.log(req.user);
     next();
-});
+});*/
 
 app.listen(3000);
 var urlpatient, urldoctor, urladmin;
@@ -65,14 +63,12 @@ app.get("/", function (req, res) {
 });
 
 app.post("/loginpatient", passport.authenticate("local-plogin"), function(req, res) {
-            console.log("hre");
+            
             if(req.user) {
-                console.log("ljghfdgs");
                 urlpatient = '/profile/patient.' + String(req.user._id);
                 res.redirect('/profile/patient.' + String(req.user._id));
             }
             else if(!req.user) {
-                console.log("iasygc");
                 res.redirect("/");
             }
 });
@@ -168,7 +164,6 @@ app.get("/profile/patient.:id/viewdoctors", authhandler.isAuth, async function(r
     await patienthandler.extract(req.params.id, res, async function(response) {
         records = response;
         await doctorhandler.extractall(async function(d) {
-            //console.log(d);
             res.render("pviewdoctor", {information: records, url: urlpatient, doctor: d});
         }); 
     });
@@ -178,7 +173,6 @@ app.get("/profile/admin.:id/doctors", authhandler.isAuth, async function(req, re
     await adminhandler.extract(req.params.id, res, async function(response) {
         records = response;
         await doctorhandler.extractall(async function(d) {
-            //console.log(d);
             res.render("dviewadmin", {information: records, url: urladmin, doctor: d});
         }); 
     });
@@ -188,7 +182,6 @@ app.get("/profile/admin.:id/patients", authhandler.isAuth, async function(req, r
     await adminhandler.extract(req.params.id, res, async function(response) {
         records = response;
         await patienthandler.extractall(async function(p) {
-            //console.log(d);
             res.render("pviewadmin", {information: records, url: urladmin, patient: p});
         }); 
     });
@@ -197,9 +190,7 @@ app.get("/profile/admin.:id/patients", authhandler.isAuth, async function(req, r
 app
     .route("/profile/patient.:id/updateprofile")
     .get(authhandler.isAuth, async function(req, res) {
-        //console.log(req.params.id);
         await patienthandler.extract(req.params.id, res, async function(response) {
-            //console.log(response);
             res.render("updatepatientprofile", {information: response, url: urlpatient}); 
         });
     })
@@ -212,15 +203,26 @@ app
 app
     .route("/profile/doctor.:id/updateprofile")
     .get( authhandler.isAuth, async function(req, res) {
-        //console.log(req.params.id);
         await doctorhandler.extract(req.params.id, res, async function(response) {
-            //console.log(response);
             res.render("updatedoctorprofile", {information: response, url: urldoctor}); 
         });
     })
     .post(async function(req, res) {
         await doctorhandler.update(req.params.id, req.body, async function() {
             res.redirect("/profile/doctor." + String(req.params.id) + "/updateprofile");
+        });
+    });
+
+app
+    .route("/profile/doctor.:id/setschedule")
+    .get( authhandler.isAuth, async function(req, res) {
+        await doctorhandler.extract(req.params.id, res, async function(response) {
+            res.render("doctorsetschedule", {information: response, url: urldoctor}); 
+        });
+    })
+    .post(async function(req, res) {
+        await schedulehandler.addschedule(req.params.id, req, async function () {
+            res.redirect("/profile/doctor."+ req.params.id +"/setschedule");
         });
     });
 

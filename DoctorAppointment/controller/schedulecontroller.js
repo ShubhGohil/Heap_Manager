@@ -4,7 +4,6 @@ const Doctor = require('../models/doctor');
 const mail = require('../controller/sendmail');
 const Patient = require('../models/patient');
 const { ObjectId } = require('bson');
-//const alert = require('alert');
 
 var get = async function(callback) {
     var doctorname = [];
@@ -16,8 +15,6 @@ var get = async function(callback) {
             console.log(err);
         }
         else if(result) {
-            //console.log(result.length);
-            //console.log(result);
             if (result.length != 0) {
             result.forEach(function(records) {
                     if(!doctorname.includes(records.doctorid.name)) {
@@ -39,33 +36,17 @@ var make = async function(req, patientid) {
             console.log(err);
         }
         else if(result){
-            //console.log(result);
-            //console.log(req.date);
-            findtimeslot(req.doctor, result._id, String(req.date), patientid, editbooking);
-             
+            findtimeslot(req.doctor, result._id, String(req.date), patientid, editbooking);     
         }
     });
 }
-
-
-/*var record = new Booking({
-    patientid: id,
-    doctorid: result,
-    date: req.date,
-    timeslot: req.time,
-});
-record.save().then(function() {
-    alert("record saved");
-    callback();
-});*/
-
 
 
 var findtimeslot = function(doctorname, doctorid, date, patientid, callback) {
     let t = new Date();
     var time, d = date;
     d += '-' + t.getMonth() + '-' + t.getFullYear();
-    //console.log(d);
+
     Schedule.findOne({doctorid: doctorid, date: d}, async function(err, result) {
         if(err) {
             console.log(err);
@@ -83,7 +64,7 @@ var findtimeslot = function(doctorname, doctorid, date, patientid, callback) {
 }
 
 var editbooking = function(doctorid, date, patientid, timeslot) {
-    let d = new Date();
+
     var record = new Booking({
         doctorid: doctorid,
         date: date,
@@ -112,8 +93,8 @@ function getemail(patientid, doctorname, date, time) {
     });
 }
 
-var removetimeslot = function(id, time) {
-    Schedule.updateOne({_id: id}, { $pull: { timeslot: [time] } }, function(err, result) {
+var removetimeslot = async function(id, time) {
+    await Schedule.findOneAndUpdate({doctorid: id}, { $pull: { timeslot: time } }, function(err, result) {
         if(err) {
             console.log(err);
         }
@@ -126,8 +107,30 @@ var removetimeslot = function(id, time) {
     });
 }
 
+var addschedule = async function(id, info, callback) {
+    const t = new Date;
+    var d = info.body.date + '-' + t.getMonth() + '-' + t.getFullYear();
+    console.log(d);
+    var record = new Schedule({
+        doctorid: id,
+        date: d,
+        timeslot: info.body.timeslot,
+    });
+
+    record.save().then(function(err, result) {
+        if(record.isNew === false) {
+            console.log("schedule saved");
+        }
+        else if(err) {
+            console.log(err);
+        }
+    });
+    callback();
+}
+
 module.exports = {
     get: get,
     make: make,
     findtimeslot: findtimeslot,
+    addschedule: addschedule,
 }

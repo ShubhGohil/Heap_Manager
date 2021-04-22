@@ -3,14 +3,9 @@ const Booking = require('../models/booking');
 const passport = require('passport');
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcryptjs');
-const Doctor = require('../models/doctor');
-const Admin = require('../models/admin');
 const User = require('../models/user');
 const userhandler = require('../controller/usercontroller');
 
-
-
-var patient=0, doctor=0, admin=0;
 
 const customfields = {
     usernameField: 'email',
@@ -101,7 +96,6 @@ var create = async function(data, res, callback) {
 var extract = async function(id, res, callback) {
     await Patient.findOne({_id: id}, {passwd: 0}, async function(err, result) {
         if (err) {
-            //console.log(err);
             res.status(400).json({error: 'Server error in extract function'});
         }
         else if(result){
@@ -126,14 +120,12 @@ var extractall = async function(callback) {
 }
 
 var update = async function(id, fields, callback) {
-    //console.log(fields);
     if(fields.passwd == '') {
         let doc = await Patient.findOneAndUpdate(
             {_id: id },
             { name: fields.patient, mobile: fields.mobile, emailID: fields.email, address: fields.address },
             { new: true }
         );
-        //console.log(doc);
     }
     else {
         bcrypt.hash(fields.passwd, 5, async function(err, result) {
@@ -146,7 +138,6 @@ var update = async function(id, fields, callback) {
                     { name: fields.patient, mobile: fields.mobile, emailID: fields.email, passwd: result, address: fields.address  },
                     { new: true}
                 );
-                //console.log(doc);
             }
         });
     }
@@ -174,7 +165,6 @@ var deletepatient = async function(id, res) {
             console.log(err);
         }
         else if(result) {
-            //console.log(result);
             deletebookingp(id, res);
         }
     });

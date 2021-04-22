@@ -3,12 +3,9 @@ const Schedule = require("../models/schedule");
 const Booking = require("../models/booking");
 const userhandler = require("../controller/usercontroller");
 const bcrypt = require("bcryptjs");
-const assert = require("assert");
 const passport = require('passport');
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../models/user");
-
-
 
 var search = async function (email, passwd, res, callback) {
     await Doctor.findOne({emailID: email}, {emailID: 1, passwd: 1, _id: 1}, async function(err, result) {
@@ -98,13 +95,11 @@ var extractall = async function(callback) {
 }
 
 var update = async function(id, fields, callback) {
-    //console.log(fields);
     if(fields.passwd == '') {
         await Doctor.findOneAndUpdate(
             {_id: id },
             { name: fields.doctor, mobile: fields.mobile, emailID: fields.email, speciality: fields.speciality }
         );
-        //console.log(doc);
     }
     else {
         bcrypt.hash(fields.passwd, 5, async function(err, result) {
@@ -192,20 +187,6 @@ var verifyd = async function(username, password, done) {
 const strategyd = new LocalStrategy(customfields, verifyd);
 
 passport.use("local-dlogin", strategyd);
-
-passport.serializeUser(function(user, done) {
-    done(null, user._id);
-});
-
-passport.deserializeUser(function(userID, done) {
-    Doctor.findById(userID)
-        .then(function(user) {
-            done(null, user);
-        })
-        .catch(function(err) {
-            done(null, false);
-        });
-});
 
 module.exports = {
   search: search,
