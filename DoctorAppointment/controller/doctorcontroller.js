@@ -1,10 +1,13 @@
 const Doctor = require("../models/doctor");
 const Schedule = require("../models/schedule");
 const Booking = require("../models/booking");
+const userhandler = require("../controller/usercontroller");
 const bcrypt = require("bcryptjs");
 const assert = require("assert");
 const passport = require('passport');
 const LocalStrategy = require("passport-local").Strategy;
+const User = require("../models/user");
+
 
 
 var search = async function (email, passwd, res, callback) {
@@ -52,6 +55,7 @@ var create = async function (data, res, callback) {
                 await record.save().then(async function() {
                     if (record.isNew === false) {
                         await Doctor.findOne({ emailID: data.email}, function (err, doc) {
+                            userhandler.createuser(doc._id, doc.passwd);
                             if (doc){
                                 callback(doc._id);
                             }
@@ -65,6 +69,8 @@ var create = async function (data, res, callback) {
         }
     });    
 };
+
+
 
 var extract = async function(id, res, callback) {
     await Doctor.findOne({_id: id}, {passwd: 0}, async function(err, result) {
@@ -153,7 +159,53 @@ var deletedoctor = async function(id, res) {
             deletebookingd(id, res);
         }
     });
+    User.findOneAndRemove({uid: id});
 }
+
+const customfields = {
+    usernameField: 'email',
+    passwordField: 'passwd',
+}
+
+var verifyd = async function(username, password, done) {
+    Doctor.findOne({emailID: username})
+        .then(function(result) {
+            if(!result) {
+                return done(null, false)
+            }
+
+            bcrypt.compare(password, result.passwd, function(err, ismatch) {
+                if(ismatch) {
+                    done(null, result);
+                }
+                else {
+                    done(null, false);
+                }
+            });
+
+        })
+        .catch(function(err) {
+            done(err);
+        });
+}
+
+const strategyd = new LocalStrategy(customfields, verifyd);
+
+passport.use("local-dlogin", strategyd);
+
+passport.serializeUser(function(user, done) {
+    done(null, user._id);
+});
+
+passport.deserializeUser(function(userID, done) {
+    Doctor.findById(userID)
+        .then(function(user) {
+            done(null, user);
+        })
+        .catch(function(err) {
+            done(null, false);
+        });
+});
 
 module.exports = {
   search: search,

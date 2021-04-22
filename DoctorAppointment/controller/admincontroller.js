@@ -1,5 +1,8 @@
 const Admin = require('../models/admin');
 const bcrypt = require('bcryptjs');
+const userhandler = require("../controller/usercontroller");
+const User = require("../models/user");
+
 
 var search = async function(email, passwd, res, callback) {
     await Admin.findOne({emailID: email}, {emailID: 1, passwd: 1, _id: 1}, async function(err, result) {
@@ -42,6 +45,7 @@ var create = async function(data, res, callback) {
                 await record.save().then(async function() {
                     if (record.isNew === false) {
                         await Admin.findOne({ emailID: data.email}, function (err, doc) {
+                            userhandler.createuser(doc._id, doc.passwd);
                             if (doc){
                                 callback(doc._id);
                             }
@@ -73,6 +77,7 @@ var deleteadmin = async function(id, res) {
             console.log(err);
         }
         else if(result) {
+            User.findOneAndRemove({uid: id});
             console.log("Admin removed");
             res.redirect("/");
         }

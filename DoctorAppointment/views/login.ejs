@@ -29,8 +29,8 @@
                 <button type="button" class="toggle-btn" onclick="register()">Register</button>
             </div>  
        
-        <form id="login" class="input-group" action='/login' method='post'>
-            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" required>
+        <form id="login" name="login" class="input-group" action='/login' method='post' onsubmit="return changeaction();">
+            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" id="role" required>
             <datalist id='selectclass'>
                 <option value='Patient'>
                 <option value='Doctor'>
@@ -41,7 +41,7 @@
             <button type="submit" class="submit-btn">Login</button>
         </form>
 
-        <form id="register" class="input-group" action='/register' method='post'>
+        <form id="register" class="input-group" action='/register' method='post' >
             <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" onChange="change()" id="classes" required>
             <datalist id='selectclass'>
                 <option value='Patient'>
@@ -97,6 +97,21 @@
             document.getElementById("hide").style.display="inline";
             document.getElementById("mobi").style.display="inline";
         }
+    }
+
+    function changeaction() {
+        let role = document.getElementById("role").value;
+
+        if(role == 'Patient') {
+            document.getElementById("login").action = "/loginpatient";
+        }
+        else if(role == 'Doctor') {
+            document.getElementById("login").action = "/logindoctor";
+        }
+        else if(role == 'Admin') {
+            document.getElementById("login").action = "/loginadmin";
+        }
+        return true;
     }
 
     /*function check() {
