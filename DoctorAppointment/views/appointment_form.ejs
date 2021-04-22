@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+     
+      <link rel="stylesheet" type="text/css" href="/css/style2.css">
+      	<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+
+<style type="text/css">
+
+
+.form-style-4{
+	width: 450px;
+	font-size: 16px;
+	background: #495C70;
+	padding: 30px 30px 15px 30px;
+	border: 5px solid #53687E;
+	margin-top: 15%;
+	margin-left: 35%;
+}
+.form-style-4 input[type=submit],
+.form-style-4 input[type=button],
+.form-style-4 input[type=text],
+.form-style-4 label
+{
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 16px;
+	color: #fff;
+
+}
+.form-style-4 label {
+	display:block;
+	margin-bottom: 10px;
+}
+.form-style-4 label > span{
+	display: inline-block;
+	/*float: left;*/
+	width: 250px;
+}
+.form-style-4 input[type=text]
+{
+	background: transparent;
+	border: none;
+	border-bottom: 1px dashed #83A4C5;
+	width: 275px;
+	outline: none;
+	padding: 0px 0px 0px 0px;
+	font-style: italic;
+}
+
+.form-style-4 input[type=text]:focus
+{
+	border-bottom: 1px dashed #D9FFA9;
+}
+
+.form-style-4 input[type=submit],
+.form-style-4 input[type=button]{
+	background: #576E86;
+	border: none;
+	padding: 8px 10px 8px 10px;
+	border-radius: 5px;
+	color: #A8BACE;
+}
+.form-style-4 input[type=submit]:hover,
+.form-style-4 input[type=button]:hover{
+background: #394D61;
+}
+</style>
+   
+<script>
+
+	function update() {
+		
+		console.log("here");
+		if(document.getElementById("check").checked) {
+			let dname = document.getElementById("bname").value;
+			console.log(dname);
+			doctordate[dname].forEach(function(date) {
+				document.getElementByID("ddate").innerHTML += "<option value=date>";
+			});
+		}
+	
+		let ddate = document.getElementById('bdate').value;
+		//let dname = document.getElementById('bname').value;
+		let i;
+		for(i=0; i< allrec.length; i++) {
+			if((allrec[i].doctorid.name == dname) && (allrec[i].date == ddate)) {
+				allrec[i].timeslot.forEach(function(t) {
+					document.getElementById("dtime").innerHTML += "<option value=t>";
+				});
+			}
+		}
+	}
+	
+	</script>
+	
+
+  </head>
+  <body>
+
+    <div class="wrapper">
+    <%- include("./partials/nav.ejs", {information: information, url: url}) %>
+    <div class="main_content">
+    	<div class="header">Welcome! Have a healthy day.</div>  
+    	<div class="info">
+    
+	<form class="form-style-4" action="<%= url %>/makebooking" method="post">
+	
+	<label for="field1">
+	<span>Select Doctor</span>
+	<input type="text" name="doctor" list="dname" id="bname" required>
+	<datalist id="dname">
+	<% doctorname.forEach(function(name) { %>	
+			<option value="<%= name %>"">
+	<% }); %>
+	</datalist>
+	</label>
+
+	<label for="field2">
+	<span>Select Date</span>
+	<input type="text" name="date" list="ddate" id="bdate" required >
+	<datalist id="ddate">
+		<% let i = new Date %>
+		<option value="<%= i.getDate() %>" >
+		<option value="<%= i.getDate() + 1 %>" >
+		<option value="<%= i.getDate() + 2 %>" >
+
+	</datalist>
+	</label>	
+	
+	<label>
+	<span> </span><input type="submit" value="Make appointment" >
+	</label>
+	
+	</form>
+    	</div>
+    </div>
+    </div>
+
+
+  </body>
+</html>

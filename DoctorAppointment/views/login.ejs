@@ -1,0 +1,112 @@
+﻿﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor appointment app</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+</head>
+<body>
+    <div class="code">
+        <div class="navbar">
+            <div>
+                <a href='#'>Doctor Appointment System</a>
+            </div>
+            <nav>
+                <ul id='MenuItems'>
+                    <li><a href='#'>Home</a></li>
+                    <li><a href='#'>About Us</a></li>
+                    <li><a href='#'>Services</a></li>
+                    <li><a href='#'>Contact</a></li>
+    
+                </ul>
+            </nav>
+        </div>
+        <div class="form">
+            <span id='login_failed'></span>
+            <div class="button">
+            <div id="btn"></div>
+                <button type="button" class="toggle-btn" onclick="login()">Login</button>
+                <button type="button" class="toggle-btn" onclick="register()">Register</button>
+            </div>  
+       
+        <form id="login" class="input-group" action='/login' method='post'>
+            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" required>
+            <datalist id='selectclass'>
+                <option value='Patient'>
+                <option value='Doctor'>
+                <option value='Admin'>
+            </datalist>
+            <input type="mail" class="input-field" placeholder="Email ID" name="email" required>
+            <input type="password" class="input-field" placeholder="Password" name="passwd" required>
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+
+        <form id="register" class="input-group" action='/register' method='post'>
+            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" onChange="change()" id="classes" required>
+            <datalist id='selectclass'>
+                <option value='Patient'>
+                <option value='Doctor'>
+                <option value='Admin'>
+            </datalist>
+            <input type="text" class="input-field" placeholder="Name" name="name" required>
+            <input type="text" class="input-field" placeholder="Mobile no." name="mobile" id="mobi" pattern="[0-9]{10}" maxlength="10" required>
+            <input type="mail" class="input-field" placeholder="Email ID" name="email" required>
+            <input type="password" class="input-field" placeholder="Create Password" name="newpasswd" id="p1" required>
+            <!---<input type="password" class="input-field" placeholder="Confirm Password" name="confirmpasswd" id="p2" required>--->
+            <input type="text" class="input-field" placeholder="Speciality" name="speciality" id='hide' required>
+            <button type="submit" class="submit-btn">Register</button>
+        </form>
+        </div>
+    </div>
+    
+    <script>
+    var login_success = true;
+    var x = document.getElementById("login");
+    var y = document.getElementById("register");
+    var z = document.getElementById("btn");
+
+    if (login_success == false) {
+        document.getElementById('login_failed').innerHTML = 'Incorrect email or password';
+    }
+
+    function register(){
+             x.style.left="-400px"; 
+             y.style.left="50px";
+             z.style.left="10px";
+           }
+    function login(){
+             x.style.left="50px"; 
+             y.style.left="450px";
+             z.style.left="0px";
+           }
+
+    function change() {
+    	var x = document.getElementById("classes");
+    	if(x.value 	== 'Patient') {
+    		document.getElementById("hide").style.display="none";
+            document.getElementById("hide").value="none";
+            document.getElementById("mobi").style.display="inline";
+    	}
+        else if(x.value == 'Admin') {
+            document.getElementById("hide").style.display="none";
+            document.getElementById("mobi").style.display="none";
+            document.getElementById("hide").value="none";
+            document.getElementById("mobi").value="none";
+        }
+        else if(x.value == 'Doctor') {
+            document.getElementById("hide").style.display="inline";
+            document.getElementById("mobi").style.display="inline";
+        }
+    }
+
+    /*function check() {
+        var p1 = document.getElementById("p1").value;
+        var p2 = document.getElementById("p2").value;
+        if(p1 != p2) {
+            alert("Password didn't match");
+        }
+    }*/
+
+    </script>
+</body>
+</html>

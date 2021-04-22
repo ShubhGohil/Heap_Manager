@@ -1,0 +1,60 @@
+body{
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url(green.png);
+}
+.form-data{
+     margin-top: 15%;
+     background-color: #FFF;
+    
+}
+.no-margin{
+     margin: 0px;
+}
+.form-body{
+       padding: 20px;
+}
+.form-head{
+     padding: 10px;
+     border-bottom: 1px solid #CCC;
+}
+.form-head h2{
+     font-size: 22px;
+     font-weight: 600;
+}
+.form-row{
+    margin-bottom: 15px;
+}
+.form-control{
+    background-color: #f7f7ff;
+}
+.form-control:focus{
+    box-shadow: none;
+    border: 3px solid #138496;
+} 
+.btn-appointment{
+    background-color: #138496;
+    border-color: #138496;
+    width: 100%;
+}
+.content{
+    margin-top: 15%;
+    text-align: center;
+    color: #FFF;
+    padding: 30px;
+}
+.content h1{
+    font-weight: 600;
+    font-size: 3.5rem;
+}
+.content p{
+    font-size: 18px;
+}
+
+
+
+
+
+@media screen and(max-width: 976px){
+
+}
