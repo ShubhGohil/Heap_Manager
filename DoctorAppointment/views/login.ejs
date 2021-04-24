@@ -53,7 +53,7 @@
             <input type="mail" class="input-field" placeholder="Email ID" name="email" required>
             <input type="password" class="input-field" placeholder="Create Password" name="newpasswd" id="p1" required>
             <!---<input type="password" class="input-field" placeholder="Confirm Password" name="confirmpasswd" id="p2" required>--->
-            <input type="text" class="input-field" placeholder="Speciality" name="speciality" id='hide' required>
+            <input type="text" class="input-field" placeholder="Speciality" name="speciality" id='speciality' required>
             <button type="submit" class="submit-btn">Register</button>
         </form>
         </div>
@@ -83,18 +83,18 @@
     function change() {
     	var x = document.getElementById("classes");
     	if(x.value 	== 'Patient') {
-    		document.getElementById("hide").style.display="none";
-            document.getElementById("hide").value="none";
+    		document.getElementById("speciality").style.display="none";
+            document.getElementById("speciality").value="none";
             document.getElementById("mobi").style.display="inline";
     	}
         else if(x.value == 'Admin') {
-            document.getElementById("hide").style.display="none";
+            document.getElementById("speciality").style.display="none";
             document.getElementById("mobi").style.display="none";
-            document.getElementById("hide").value="none";
-            document.getElementById("mobi").value="none";
+            document.getElementById("speciality").value="none";
+            document.getElementById("mobi").value="1234567890";
         }
         else if(x.value == 'Doctor') {
-            document.getElementById("hide").style.display="inline";
+            document.getElementById("speciality").style.display="inline";
             document.getElementById("mobi").style.display="inline";
         }
     }

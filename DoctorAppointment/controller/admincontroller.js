@@ -2,6 +2,9 @@ const Admin = require('../models/admin');
 const bcrypt = require('bcryptjs');
 const userhandler = require("../controller/usercontroller");
 const User = require("../models/user");
+const LocalStrategy = require("passport-local").Strategy;
+const passport = require('passport');
+
 
 
 var search = async function(email, passwd, res, callback) {
@@ -83,6 +86,37 @@ var deleteadmin = async function(id, res) {
         }
     });
 }
+
+const customfields = {
+    usernameField: 'email',
+    passwordField: 'passwd',
+}
+
+var verifya = async function(username, password, done) {
+    Admin.findOne({emailID: username})
+        .then(function(result) {
+            if(!result) {
+                return done(null, false)
+            }
+
+            bcrypt.compare(password, result.passwd, function(err, ismatch) {
+                if(ismatch) {
+                    done(null, result);
+                }
+                else {
+                    done(null, false);
+                }
+            });
+
+        })
+        .catch(function(err) {
+            done(err);
+        });
+}
+
+const strategya = new LocalStrategy(customfields, verifya);
+
+passport.use("local-alogin", strategya);
 
 module.exports = {
     search: search,

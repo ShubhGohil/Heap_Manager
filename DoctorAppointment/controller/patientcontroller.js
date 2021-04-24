@@ -171,6 +171,18 @@ var deletepatient = async function(id, res) {
     User.findOneAndRemove({uid: id});
 }
 
+var deletepatientfromadmin = async function(body, res) {
+    Patient.findOneAndRemove({name: body.patient, emailID: body.email, mobile: body.mobile}, async function(err, result) {
+        if(err) {
+            console.log(err);
+        }
+        else if(result) {
+            deletebookingp(result._id, res);
+        }
+    });
+    User.findOneAndRemove({uid: result._id});
+}
+
 const strategy = new LocalStrategy(customfields, verify);
 
 passport.use("local-plogin", strategy);
@@ -196,4 +208,5 @@ module.exports = {
     extractall: extractall,
     update: update,
     deletepatient: deletepatient,
+    deletepatientfromadmin: deletepatientfromadmin,
 };

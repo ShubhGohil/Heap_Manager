@@ -133,14 +133,17 @@ var deleteschedule = async function(id, res) {
 }
 
 var deletebookingd = async function(id, res) {
-    Booking.findOneAndRemove({doctorid: id}, async function(err, result) {
+    await Booking.findOneAndRemove({doctorid: id}, async function(err, result) {
         if(err) {
             console.log("Error from remove patient booking " + String(err));
         }
         else if(result) {
             console.log("Patient booking removed");
             deleteschedule(id, res);
-        } 
+        }
+        else {
+            deleteschedule(id, res);
+        }
     });
 }
 
@@ -155,6 +158,19 @@ var deletedoctor = async function(id, res) {
         }
     });
     User.findOneAndRemove({uid: id});
+}
+
+var deletedoctorfromadmin = async function(body, res) {
+    await Doctor.findOneAndRemove({name: body.doctor, emailID: body.email, speciality: body.speciality}, async function(err, result) {
+        if(err) {
+            console.log(err);
+        }
+        else if(result) {
+            console.log("doctor removed");
+            deletebookingd(result._id, res);
+        }
+    });
+    User.findOneAndRemove({uid: result._id});
 }
 
 const customfields = {
@@ -195,5 +211,6 @@ module.exports = {
   extractall: extractall,
   update: update,
   deletedoctor: deletedoctor,
+  deletedoctorfromadmin: deletedoctorfromadmin,
 };
 

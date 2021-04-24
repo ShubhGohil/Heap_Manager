@@ -97,7 +97,7 @@ app.post("/register", async function (req, res) {
     var role = req.body.role;
     if (role === "Patient") {
         await patienthandler.create(req.body, res, function(response) {
-            urlpatient = '/profile/patient.' + String(response); 
+            urlpatient = '/profile/patient.' + String(response);
             res.redirect('/profile/patient.' + String(response));
         });
     } 
@@ -136,8 +136,7 @@ app.get("/profile/:role.:id", authhandler.isAuth, async function (req, res) {
     }
     else if(req.params.role === 'admin') {
         await adminhandler.extract(req.params.id, res, function(response) {
-            info = response;
-            res.render("adminprofile", {information: info, url: urladmin});
+            res.render("adminprofile", {information: response, url: urladmin});
         });
     }
 });
@@ -169,23 +168,33 @@ app.get("/profile/patient.:id/viewdoctors", authhandler.isAuth, async function(r
     });
 });
 
-app.get("/profile/admin.:id/doctors", authhandler.isAuth, async function(req, res) {
-    await adminhandler.extract(req.params.id, res, async function(response) {
-        records = response;
-        await doctorhandler.extractall(async function(d) {
-            res.render("dviewadmin", {information: records, url: urladmin, doctor: d});
-        }); 
+app
+    .route("/profile/admin.:id/doctors")
+    .get(authhandler.isAuth, async function(req, res) {
+        await adminhandler.extract(req.params.id, res, async function(response) {
+            records = response;
+            await doctorhandler.extractall(async function(d) {
+                res.render("aviewdoctor", {information: records, url: urladmin, doctor: d});
+            }); 
+        });
+    })
+    .post(authhandler.isAuth, async function(req, res) {
+        await doctorhandler.deletedoctorfromadmin(req.body, res);
     });
-});
 
-app.get("/profile/admin.:id/patients", authhandler.isAuth, async function(req, res) {
-    await adminhandler.extract(req.params.id, res, async function(response) {
-        records = response;
-        await patienthandler.extractall(async function(p) {
-            res.render("pviewadmin", {information: records, url: urladmin, patient: p});
-        }); 
+app
+    .route("/profile/admin.:id/patients")
+    .get(authhandler.isAuth, async function(req, res) {
+        await adminhandler.extract(req.params.id, res, async function(response) {
+            records = response;
+            await patienthandler.extractall(async function(p) {
+                res.render("aviewpatient", {information: records, url: urladmin, patient: p});
+            }); 
+        });
+    })
+    .post(authhandler.isAuth, async function(req, res) {
+        await patienthandler.deletepatientfromadmin(req.body, res);
     });
-});
 
 app
     .route("/profile/patient.:id/updateprofile")
@@ -197,6 +206,22 @@ app
     .post(async function(req, res) {
         await patienthandler.update(req.params.id, req.body, async function() {
             res.redirect("/profile/patient." + String(req.params.id) + "/updateprofile");
+        });
+    });
+
+    app
+    .route("/profile/patient.:id/cancelbooking")
+    .get(authhandler.isAuth, async function(req, res) {
+        await patienthandler.extract(req.params.id, res, async function(response) {
+            info = response;
+            await bookinghandler.displaydbooking(req.params.id, async function(binfo) {
+                res.render("cancelbooking", {url: urlpatient, information: info, bookinginfo: binfo});
+            });
+        });
+    })
+    .post(async function(req, res) {
+        await bookinghandler.deletebooking(req.params.id, req.body, async function() {
+            res.redirect("/profile/patient." + String(req.params.id) + "/cancelbooking");
         });
     });
 
@@ -226,17 +251,29 @@ app
         });
     });
 
+app.get("/profile/patient.:id/faq/", authhandler.isAuth, async function (req, res) {
+    await patienthandler.extract(req.params.id, res, async function(response) {
+        res.render("faq", {information: response, url: urlpatient});
+    });
+});
+
+app.get("/profile/doctor.:id/faq/", authhandler.isAuth, async function (req, res) {
+    await doctorhandler.extract(req.params.id, res, async function(response) {
+        res.render("faq", {information: response, url: urldoctor});
+    });
+});
+
 app.get("/profile/patient.:id/removepatientaccount/", authhandler.isAuth, async function (req, res) {
     req.logout();
     await patienthandler.deletepatient(req.params.id, res);
 });
 
-app.get("/profile/doctor.:id/removepatientaccount/", authhandler.isAuth, async function (req, res) {
+app.get("/profile/doctor.:id/removedoctoraccount/", authhandler.isAuth, async function (req, res) {
     req.logout();
     await doctorhandler.deletedoctor(req.params.id, res);
 });
 
-app.get("/profile/admin.:id/removepatientaccount/", authhandler.isAuth, async function (req, res) {
+app.get("/profile/admin.:id/removeadminaccount/", authhandler.isAuth, async function (req, res) {
     req.logout();
     await adminhandler.deleteadmin(req.params.id, res);
 });
