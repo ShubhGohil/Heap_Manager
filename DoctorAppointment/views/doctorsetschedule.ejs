@@ -22,7 +22,7 @@
             <h1 style="margin-bottom: 25px;">Doctor's Schedule</h1>
             <form method="POST" action="<%= url %>/setschedule">
                <div id="survey_options">
-                  <input type="text" name="date" class="survey_options" size="50" placeholder="Date" list="dates" required>
+                  <input type="text" name="date" class="survey_options" size="50" placeholder="Date" list="dates" autocomplete="off" required>
                   <datalist id="dates">
                      <% let i = new Date %>
                      <option value="<%= i.getDate() %>">
@@ -32,8 +32,8 @@
                   <input type="text" name="timeslot[]" class="survey_options" size="50" placeholder="Time(24hr format)" pattern="([01]?[0-9]|2[0-3]).[0-5][0-9]" maxlength="5" required>
                </div>
                <div class="controls">
-                  <span id="add_more_field"><i class="fa fa-plus"></i>Add more</a>
-                  <span id="remove_field"><i class="fa fa-plus"></i>Remove Field</a>
+                  <span id="add_more_field"><i class="fa fa-plus"></i>Add more</span>
+                  <span id="remove_field"><i class="fa fa-plus"></i>Remove Field</span >
                </div>
                <center><input type="submit" style="width: 80px; height: 30px;"></center>
             </form>

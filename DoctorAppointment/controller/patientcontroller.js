@@ -119,29 +119,40 @@ var extractall = async function(callback) {
     }); 
 }
 
-var update = async function(id, fields, callback) {
-    if(fields.passwd == '') {
-        let doc = await Patient.findOneAndUpdate(
-            {_id: id },
-            { name: fields.patient, mobile: fields.mobile, emailID: fields.email, address: fields.address },
-            { new: true }
-        );
-    }
-    else {
-        bcrypt.hash(fields.passwd, 5, async function(err, result) {
-            if(err) {
-                console.log("Error while updating with password");
-            }
-            else {
-                let doc = Patient.findOneAndUpdate(
-                    {_id: id},
-                    { name: fields.patient, mobile: fields.mobile, emailID: fields.email, passwd: result, address: fields.address  },
-                    { new: true}
+var update = async function(id, fields, res, callback) {
+    
+    await Patient.findOne({emailID: fields.email}, async function(err, result) {
+        if(err) {
+            console.log("Server error while checking email");
+        }
+        else if(result && !(result._id == id)) {
+            res.redirect("/profile/patient." + String(id) + "/updateprofile/0");
+        }    
+        else {
+            if(fields.passwd == '') {
+                await Patient.findOneAndUpdate(
+                    {_id: id },
+                    { name: fields.patient, mobile: fields.mobile, emailID: fields.email, address: fields.address },
+                    { new: true }
                 );
             }
-        });
-    }
-    callback();
+            else {
+                bcrypt.hash(fields.passwd, 5, async function(err, result) {
+                    if(err) {
+                        console.log("Error while updating with password");
+                    }
+                    else {
+                        let doc = Patient.findOneAndUpdate(
+                            {_id: id},
+                            { name: fields.patient, mobile: fields.mobile, emailID: fields.email, passwd: result, address: fields.address  },
+                            { new: true}
+                        );
+                    }
+                });
+            }
+            callback();
+        }
+    });
 }
 
 var deletebookingp = async function(id, res) {

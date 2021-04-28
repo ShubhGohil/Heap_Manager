@@ -94,27 +94,38 @@ var extractall = async function(callback) {
     }); 
 }
 
-var update = async function(id, fields, callback) {
-    if(fields.passwd == '') {
-        await Doctor.findOneAndUpdate(
-            {_id: id },
-            { name: fields.doctor, mobile: fields.mobile, emailID: fields.email, speciality: fields.speciality }
-        );
-    }
-    else {
-        bcrypt.hash(fields.passwd, 5, async function(err, result) {
-            if(err) {
-                console.log("Error while updating with password");
-            }
-            else {
-                Doctor.findOneAndUpdate(
-                    {_id: id},
-                    { name: fields.doctor, mobile: fields.mobile, emailID: fields.email, passwd: result, speciality: fields.speciality  }
+var update = async function(id, fields, res, callback) {
+    
+    await Doctor.findOne({emailID: fields.email}, async function(err, result) {
+        if(err) {
+            console.log(err);
+        }
+        else if(result && !(result._id == id)) {
+            res.redirect("/profile/doctor." + String(id) + "/updateprofile/0");
+        }
+        else {
+            if(fields.passwd == '') {
+                await Doctor.findOneAndUpdate(
+                    {_id: id },
+                    { name: fields.doctor, mobile: fields.mobile, emailID: fields.email, speciality: fields.speciality }
                 );
             }
-        });
-    }
-    callback();
+            else {
+                bcrypt.hash(fields.passwd, 5, async function(err, result) {
+                    if(err) {
+                        console.log("Error while updating with password");
+                    }
+                    else {
+                        Doctor.findOneAndUpdate(
+                            {_id: id},
+                            { name: fields.doctor, mobile: fields.mobile, emailID: fields.email, passwd: result, speciality: fields.speciality  }
+                        );
+                    }
+                });
+            }
+            callback();
+        }
+    }); 
 }
 
 var deleteschedule = async function(id, res) {

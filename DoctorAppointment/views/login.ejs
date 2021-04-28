@@ -14,8 +14,7 @@
             <nav>
                 <ul id='MenuItems'>
                     <li><a href='#'>Home</a></li>
-                    <li><a href='#'>About Us</a></li>
-                    <li><a href='#'>Services</a></li>
+                    <li><a href='/loginadmin'>Log In as Admin</a></li>
                     <li><a href='#'>Contact</a></li>
     
                 </ul>
@@ -30,11 +29,10 @@
             </div>  
        
         <form id="login" name="login" class="input-group" action='/login' method='post' onsubmit="return changeaction();">
-            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" id="role" required>
+            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" id="role" autocomplete="off" required>
             <datalist id='selectclass'>
                 <option value='Patient'>
                 <option value='Doctor'>
-                <option value='Admin'>
             </datalist>
             <input type="mail" class="input-field" placeholder="Email ID" name="email" required>
             <input type="password" class="input-field" placeholder="Password" name="passwd" required>
@@ -42,14 +40,13 @@
         </form>
 
         <form id="register" class="input-group" action='/register' method='post' >
-            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" onChange="change()" id="classes" required>
+            <input type="text" class="input-field" placeholder="Role" list='selectclass' name="role" onChange="change()" id="classes" autocomplete="off" required>
             <datalist id='selectclass'>
                 <option value='Patient'>
                 <option value='Doctor'>
-                <option value='Admin'>
             </datalist>
             <input type="text" class="input-field" placeholder="Name" name="name" required>
-            <input type="text" class="input-field" placeholder="Mobile no." name="mobile" id="mobi" pattern="[0-9]{10}" maxlength="10" required>
+            <input type="text" class="input-field" placeholder="Mobile no." name="mobile" id="mobi" pattern="[0-9]{10}" maxlength="10" minlength="10" required>
             <input type="mail" class="input-field" placeholder="Email ID" name="email" required>
             <input type="password" class="input-field" placeholder="Create Password" name="newpasswd" id="p1" required>
             <!---<input type="password" class="input-field" placeholder="Confirm Password" name="confirmpasswd" id="p2" required>--->
@@ -73,12 +70,12 @@
              x.style.left="-400px"; 
              y.style.left="50px";
              z.style.left="10px";
-           }
+    }
     function login(){
              x.style.left="50px"; 
              y.style.left="450px";
              z.style.left="0px";
-           }
+    }
 
     function change() {
     	var x = document.getElementById("classes");
@@ -87,15 +84,17 @@
             document.getElementById("speciality").value="none";
             document.getElementById("mobi").style.display="inline";
     	}
-        else if(x.value == 'Admin') {
+        /*else if(x.value == 'Admin') {
             document.getElementById("speciality").style.display="none";
             document.getElementById("mobi").style.display="none";
             document.getElementById("speciality").value="none";
             document.getElementById("mobi").value="1234567890";
-        }
+        }*/
         else if(x.value == 'Doctor') {
             document.getElementById("speciality").style.display="inline";
             document.getElementById("mobi").style.display="inline";
+            document.getElementById("speciality").value="";
+            document.getElementById("mobi").value="";
         }
     }
 
@@ -108,19 +107,11 @@
         else if(role == 'Doctor') {
             document.getElementById("login").action = "/logindoctor";
         }
-        else if(role == 'Admin') {
+        /*else if(role == 'Admin') {
             document.getElementById("login").action = "/loginadmin";
-        }
+        }*/
         return true;
     }
-
-    /*function check() {
-        var p1 = document.getElementById("p1").value;
-        var p2 = document.getElementById("p2").value;
-        if(p1 != p2) {
-            alert("Password didn't match");
-        }
-    }*/
 
     </script>
 </body>

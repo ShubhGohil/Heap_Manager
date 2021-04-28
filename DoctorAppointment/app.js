@@ -9,6 +9,7 @@ const session = require("express-session");
 const mongoose = require("mongoose");
 const authhandler = require("./controller/authMiddleware"); 
 mongoose.Promise = global.Promise;
+const multer = require("multer");
 
 mongoose.connect('mongodb://localhost:27017/trail', {
     useNewUrlParser: true,
@@ -62,6 +63,7 @@ app.get("/", function (req, res) {
   res.render("login");
 });
 
+
 app.post("/loginpatient", passport.authenticate("local-plogin"), function(req, res) {
             
             if(req.user) {
@@ -83,7 +85,12 @@ app.post("/logindoctor", passport.authenticate("local-dlogin"), function(req, re
     }
 });
 
-app.post("/loginadmin", passport.authenticate("local-alogin"), function(req, res) {
+app
+.route("/loginadmin")
+.get(function(req, res) {
+    res.render("adminlogin");
+})
+.post(passport.authenticate("local-alogin"), function(req, res) {
     if(req.user) {
         urladmin = '/profile/admin.' + String(req.user._id);
         res.redirect('/profile/admin.' + String(req.user._id));
@@ -107,12 +114,12 @@ app.post("/register", async function (req, res) {
             res.redirect("/profile/doctor." + String(response));
         });
     } 
-    else if (role === "Admin") {
+    /*else if (role === "Admin") {
         await adminhandler.create(req.body, res, function(response) {
             urladmin = '/profile/admin.' + String(response);
             res.redirect("/profile/admin." + String(response));
         });
-    }
+    }*/
 });
 
 app.get("/profile/:role.:id", authhandler.isAuth, async function (req, res) {
@@ -142,20 +149,24 @@ app.get("/profile/:role.:id", authhandler.isAuth, async function (req, res) {
 });
 
 app
-    .route("/profile/patient.:id/makebooking")
+    .route("/profile/patient.:id/makebooking/:status?")
     .get(authhandler.isAuth, async function (req, res) {
         let records;
         await patienthandler.extract(req.params.id, res, async function(response) {
             records = response;
             await schedulehandler.get(async function(dn) {
-                res.render("appointment_form", {information: records, url: urlpatient, doctorname: dn});
+                if(req.params.status == undefined) {
+                    res.render("appointment_form", {information: records, url: urlpatient, doctorname: dn, status: "2"});
+                }
+                else {
+                    res.render("appointment_form", {information: records, url: urlpatient, doctorname: dn, status: req.params.status});
+                }
             }); 
         });
     })
     .post(async function (req, res) {
 
-        await schedulehandler.make(req.body, req.params.id, res);
-        res.redirect("/profile/patient." + String(req.params.id) + "/makebooking");    
+        await schedulehandler.make(req.body, req.params.id, res);    
 
     });
 
@@ -197,19 +208,24 @@ app
     });
 
 app
-    .route("/profile/patient.:id/updateprofile")
+    .route("/profile/patient.:id/updateprofile/:status?")
     .get(authhandler.isAuth, async function(req, res) {
         await patienthandler.extract(req.params.id, res, async function(response) {
-            res.render("updatepatientprofile", {information: response, url: urlpatient}); 
+            if(req.params.status==undefined) {
+                res.render("updatepatientprofile", {information: response, url: urlpatient, status: "2"});
+            }
+            else {
+                res.render("updatepatientprofile", {information: response, url: urlpatient, status: req.params.status});
+            } 
         });
     })
     .post(async function(req, res) {
-        await patienthandler.update(req.params.id, req.body, async function() {
-            res.redirect("/profile/patient." + String(req.params.id) + "/updateprofile");
+        await patienthandler.update(req.params.id, req.body, res, async function() {
+            res.redirect("/profile/patient." + String(req.params.id) + "/updateprofile/1");
         });
     });
 
-    app
+app
     .route("/profile/patient.:id/cancelbooking")
     .get(authhandler.isAuth, async function(req, res) {
         await patienthandler.extract(req.params.id, res, async function(response) {
@@ -226,15 +242,20 @@ app
     });
 
 app
-    .route("/profile/doctor.:id/updateprofile")
+    .route("/profile/doctor.:id/updateprofile/:status?")
     .get( authhandler.isAuth, async function(req, res) {
         await doctorhandler.extract(req.params.id, res, async function(response) {
-            res.render("updatedoctorprofile", {information: response, url: urldoctor}); 
+            if(req.params.status == undefined) {
+                res.render("updatedoctorprofile", {information: response, url: urldoctor, status: "2"}); 
+            }
+            else {
+                res.render("updatedoctorprofile", {information: response, url: urldoctor, status: req.params.status});
+            }
         });
     })
     .post(async function(req, res) {
-        await doctorhandler.update(req.params.id, req.body, async function() {
-            res.redirect("/profile/doctor." + String(req.params.id) + "/updateprofile");
+        await doctorhandler.update(req.params.id, req.body, res, async function() {
+            res.redirect("/profile/doctor." + String(req.params.id) + "/updateprofile/1");
         });
     });
 
@@ -263,6 +284,16 @@ app.get("/profile/doctor.:id/faq/", authhandler.isAuth, async function (req, res
     });
 });
 
+/*app
+    .route("/profile/patient.:id/uploadfile")
+    .get("/profile/patient.:id/uploadfile", authhandler.isAuth, async function(req, res) {
+        await doctorhandler.extract(req.params.id, res, async function(response) {
+            await filehandler.get(response, async function() {
+                res.render("faq", {information: response, url: urlpatient});
+            });
+        }); 
+    })*/
+    
 app.get("/profile/patient.:id/removepatientaccount/", authhandler.isAuth, async function (req, res) {
     req.logout();
     await patienthandler.deletepatient(req.params.id, res);

@@ -106,11 +106,19 @@ background: #394D61;
     	<div class="header">Welcome! Have a healthy day.</div>  
     	<div class="info">
     
+	<% if(status=="0") { %>
+	<span>No slots available</span>
+	<% } %>
+
+	<% if(status=="1") { %>
+		<span>Booking Saved</span>
+	<% } %>
+
 	<form class="form-style-4" action="<%= url %>/makebooking" method="post">
 	
 	<label for="field1">
 	<span>Select Doctor</span>
-	<input type="text" name="doctor" list="dname" id="bname" required>
+	<input type="text" name="doctor" list="dname" id="bname" autocomplete="off" required>
 	<datalist id="dname">
 	<% doctorname.forEach(function(name) { %>	
 			<option value="<%= name %>"">
@@ -120,7 +128,7 @@ background: #394D61;
 
 	<label for="field2">
 	<span>Select Date</span>
-	<input type="text" name="date" list="ddate" id="bdate" required >
+	<input type="text" name="date" list="ddate" id="bdate" autocomplete="off" required >
 	<datalist id="ddate">
 		<% let i = new Date %>
 		<option value="<%= i.getDate() %>" >

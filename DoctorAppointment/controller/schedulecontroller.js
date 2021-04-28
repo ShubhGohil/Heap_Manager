@@ -19,7 +19,7 @@ var get = async function(callback) {
             result.forEach(function(records) {
                     if(!doctorname.includes(records.doctorid.name)) {
                         doctorname.push(records.doctorid.name);
-                    } 
+                    }
             });
         }
             callback(doctorname);
@@ -30,19 +30,19 @@ var get = async function(callback) {
     });
 }
 
-var make = async function(req, patientid) {
+var make = async function(req, patientid, res) {
     Doctor.findOne({name: req.doctor}, {_id: 1}, async function(err, result) {
         if(err) {
             console.log(err);
         }
         else if(result){
-            findtimeslot(req.doctor, result._id, String(req.date), patientid, editbooking);     
+            findtimeslot(req.doctor, result._id, String(req.date), patientid, res, editbooking);     
         }
     });
 }
 
 
-var findtimeslot = function(doctorname, doctorid, date, patientid, callback) {
+var findtimeslot = function(doctorname, doctorid, date, patientid, res, callback) {
     let t = new Date();
     var time, d = date;
     d += '-' + t.getMonth() + '-' + t.getFullYear();
@@ -55,15 +55,16 @@ var findtimeslot = function(doctorname, doctorid, date, patientid, callback) {
             time = result.timeslot[0];
             removetimeslot(doctorid, time);
             getemail(patientid, doctorname, d, time);
-            callback(doctorid, d, patientid, time);
+            callback(doctorid, d, patientid, time, res);
         }
         else{
-            console.log("No available slots");
+            console.log("no slots available");
+            res.redirect("/profile/patient." + String(patientid) + "/makebooking/0");
         }
     })
 }
 
-var editbooking = function(doctorid, date, patientid, timeslot) {
+var editbooking = function(doctorid, date, patientid, timeslot, res) {
 
     var record = new Booking({
         doctorid: doctorid,
@@ -74,6 +75,7 @@ var editbooking = function(doctorid, date, patientid, timeslot) {
     record.save().then(function(err, result) {
         if(record.isNew === false) {
             console.log("booking saved");
+            res.redirect("/profile/patient." + String(patientid) + "/makebooking/1");
             }
         else if(err) {
             console.log("Something is wrong with booking");

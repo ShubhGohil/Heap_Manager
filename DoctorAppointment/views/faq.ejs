@@ -4,115 +4,81 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Doctor Appointment System</title>
-    <link rel="stylesheet" href="/css/faq.css">
+    <link rel="stylesheet" href="/css/faq2.css">
     <link rel="stylesheet" href="/css/style2.css">
     <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
 
-    <link href="https://unpkg.com/ionicons@4.5.10-0/dist/css/ionicons.min.css" rel="stylesheet">
-
   </head>
   <body>
-     <div class="wrapper">
-   <%- include("./partials/nav.ejs", {information: information, url: url}) %>
-   <div class="main_content">
-      <div class="header">Welcome! Have a healthy day.</div>  
-      <div class="info">
+  
+      <div class="wrapper">
+    <%- include("./partials/nav.ejs", {information: information, url: url}) %>
+    <div class="main_content">
+    	<div class="header">Welcome! Have a healthy day.</div>  
+    	<div class="info">
 
-     <selection>
-       <div class="container">
+  
+     <div class="container-fluid">
+     <h2>Frequently asked Questions(FAQS)</h2>
+      
+
+        <div class="accordion">
+           <div class="icon"></div>
+           <h5> How I will come to know my booking is confirmed  ?</h5> 
+        </div>
+        <div class="panel">
+        <p>  Once the booking is done you will get an confirmation mail on your registered mail id which will contain details as well as time also the appointment done wil be visible in your profile .</p>
+        </div>
+
+
+        <div class="accordion">
+           <div class="icon"></div>
+           <h5> How will I come to know that particular timeslot is not available ?</h5> 
+        </div>
+        <div class="panel">
+        <p>  Message will be displayed on your screen saying"slot not available".</p>
+        </div>
+
+
+
+        <div class="accordion">
+           <div class="icon"></div>
+           <h5> If I cancel the appointment can i make another appointment instantly ?</h5> 
+        </div>
+        <div class="panel">
+        <p>  Yes, once you cancel your appointment the same appointment will be no longer visible on your profile .By visitng make appointnebt you can book your new appointment but it does not gurantee same time slot</p>
+        </div>
+
+        <div class="accordion">
+           <div class="icon"></div>
+           <h5> Can I use same mail id for registrtaion from another account ?</h5> 
+        </div>
+        <div class="panel">
+        <p>  NO, mail id should be unique.</p>
+        </div>
+
+
+        <div class="accordion">
+           <div class="icon"></div>
+           <h5> Can advance appointment be made?</h5> 
+        </div>
+        <div class="panel">
+        <p>   Patient can make appointment as far as three days</p>
+        </div>
+
+
          <div class="accordion">
-             <p> FAQS </p>
-           <div class="accordion-item" id="question1">
-             <a class="accordion-link" href="#question1">
-               Why do you need my personal details ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-              <p>
-                We need your mobile number, email to ensure that you can be immediately informed when your doctor responds or when your medicines ship or to schedule your tests. We need your personal details such as - age, gender, etc. purely for medical usage by the doctor, so as to prescribe the most appropriate medicines and tests. We will never share your information with anyone else.
-              </p>
-             </div>
-           </div>
-            <div class="accordion-item" id="question2">
-             <a class="accordion-link" href="#question2">
-               Can i use this app for emergencies ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                No. This is app is for primary care- the kind of problems that your family doctor can help you with. Doctors on this app can only help you with consultation based issues that can be shared in the form of messages, pictures and medical reports. In case of a life- threatening emergency, please call an ambulance or head to a good hospital.
-               </p>
-             </div>
-           </div>
-           <div class="accordion-item" id="question3">
-             <a class="accordion-link" href="#question3">
-               Can i visit to same doctor again ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                Yes. All your consultations are stored separately and can be viewed from Home screen. You can continue visiting to the same doctor by selecting respective appointment on the Home screen. In case your 3-day consultation period gets over and you need to consult the same doctor again, you can do so by paying the consultation for a new session with the same doctor. They will have your history as well as any reports or images that you had attached earlier.
-               </p>
-             </div>
-           </div>
-           <div class="accordion-item" id="question4">
-             <a class="accordion-link" href="#question4">
-               Can I talk to someone for help ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                Please mail us at help@docsapp.in
-               </p>
-             </div>
-           </div>
-            <div class="accordion-item" id="question5">
-             <a class="accordion-link" href="#question5">
-               What are service timings ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                The timings vary from doctor to doctor. You can make appointment upto two coming days, the timeslot will be chosen by the doctor.
-               </p>
-             </div>
-           </div>
-            <div class="accordion-item" id="question6">
-             <a class="accordion-link" href="#question6">
-               How do i use this app ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                It's really easy! All you have to do is to complete your registration, you will get necessary credentials then you can login into the app. you can select the docotor of your choice and book the appointment.
-               </p>
-             </div>
-           </div>
-            <div class="accordion-item" id="question7">
-             <a class="accordion-link" href="#question7">
-               Is this app safe ?
-               <i class="icon ion-md-add"></i>
-                <i class="icon ion-md-remove"></i>
-             </a>
-             <div class="answer">
-               <p>
-                Yes. Once a doctor is allocated to you, his/her profile can be viewed by tapping on their profile picture. Your medical information will remain completely private.
-               </p>
-             </div>
-           </div>
-         </div>
-       </div>
-     </selection>
+           <div class="icon"></div>
+           <h5> can I change my registered mobile number ?</h5> 
+        </div>
+        <div class="panel">
+        <p>   Yes visit update profile enter your new mobile number and click on update button, the changes can be seen in your prfile page.</p>
+        </div>
+     </div>
+
      </div>
      </div>
      </div>
-<script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
+        
   </body>
 </html>

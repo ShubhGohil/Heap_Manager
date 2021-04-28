@@ -81,6 +81,13 @@ background: #394D61;
     	<div class="header">Welcome! Have a healthy day.</div>  
     	<div class="info">
     
+	<% if(status == "1") { %>
+	<span>Profile Updated</span>
+	<% } %>
+	<% if(status == "0") { %>
+		<span>Email already exists</span>
+	<% } %>
+
 	<form class="form-style-4" action="<%= url %>/updateprofile" method="post">
 	
 	<label for="field1">
@@ -90,7 +97,7 @@ background: #394D61;
 
 	<label for="field2">
 	<span>Mobile</span>
-	<input type="text" name="mobile" id="mobile" pattern="[0-9]{10}" maxlength="10" value="<%= information.mobile %>" required >
+	<input type="text" name="mobile" id="mobile" pattern="[0-9]{10}" maxlength="10" minlength="10" value="<%= information.mobile %>" required >
 	</label>	
 	
     <label for="field3">
