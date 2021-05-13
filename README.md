@@ -2,7 +2,7 @@
 
 This directory contains 5 various mini-projects.
 
-+ [Doctor Appointment System](##doctor-appointment-system)
++ [Doctor Appointment System](#doctor-appointment-system)
 + [Heap Manager](##heap-manager)
 + [Medical Store](##medical-store)
 + [Numeral Recognition](##numeral-recognition)
