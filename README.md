@@ -3,10 +3,10 @@
 This directory contains 5 various mini-projects.
 
 + [Doctor Appointment System](#doctor-appointment-system)
-+ [Heap Manager](##heap-manager)
-+ [Medical Store](##medical-store)
-+ [Numeral Recognition](##numeral-recognition)
-+ [SpotifyAPI](##spotifyAPI)
++ [Heap Manager](#heap-manager)
++ [Medical Store](#medical-store)
++ [Numeral Recognition](#numeral-recognition)
++ [SpotifyAPI](#spotifyAPI)
 
 
 ## Doctor Appointment System
